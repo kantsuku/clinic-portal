@@ -29,11 +29,15 @@ export default function RewriteButton({
     setError(null);
     setPreview("");
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     try {
       const res = await fetch("/api/rewrite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, text, context, stream: true }),
+        signal: controller.signal,
       });
 
       if (!res.ok) {
@@ -64,9 +68,14 @@ export default function RewriteButton({
         }
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "エラーが発生しました");
-      if (!preview) setPreview(null);
+      if (e instanceof DOMException && e.name === "AbortError") {
+        setError("タイムアウトしました。もう一度お試しください");
+      } else {
+        setError(e instanceof Error ? e.message : "エラーが発生しました");
+      }
+      setPreview((prev) => prev || null);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   }

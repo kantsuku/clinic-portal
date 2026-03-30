@@ -24,7 +24,11 @@ export function saveClinicData(
     };
     localStorage.setItem(getKey(clinicId), JSON.stringify(payload));
   } catch (e) {
-    console.error("Failed to save:", e);
+    if (e instanceof DOMException && (e.code === 22 || e.name === "QuotaExceededError")) {
+      console.error("localStorage quota exceeded");
+    } else {
+      console.error("Failed to save:", e);
+    }
   }
 }
 
@@ -42,22 +46,30 @@ export function loadClinicData(
   }
 }
 
-/** 認証トークン保存 */
-export function saveAuthToken(clinicId: string, token: string): void {
+/** 認証済みフラグ保存（パスワード自体は保存しない） */
+export function saveAuthFlag(clinicId: string): void {
   try {
-    localStorage.setItem(getAuthKey(clinicId), token);
+    const hash = btoa(clinicId + ":authed:" + Date.now());
+    localStorage.setItem(getAuthKey(clinicId), hash);
   } catch (e) {
     console.error("Failed to save auth:", e);
   }
 }
 
-/** 認証トークン読み込み */
-export function loadAuthToken(clinicId: string): string | null {
+/** 認証済みかチェック */
+export function isAuthenticated(clinicId: string): boolean {
   try {
-    return localStorage.getItem(getAuthKey(clinicId));
-  } catch (e) {
-    return null;
+    return !!localStorage.getItem(getAuthKey(clinicId));
+  } catch {
+    return false;
   }
+}
+
+/** 認証をクリア */
+export function clearAuth(clinicId: string): void {
+  try {
+    localStorage.removeItem(getAuthKey(clinicId));
+  } catch {}
 }
 
 /** 最終保存日時を取得 */

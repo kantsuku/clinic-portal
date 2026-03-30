@@ -5,7 +5,9 @@ const client = new Anthropic();
 
 export async function POST(req: Request) {
   try {
-    const { text, sectionContext } = await req.json();
+    const body = await req.json();
+    const text = typeof body.text === "string" ? body.text : "";
+    const sectionContext = typeof body.sectionContext === "string" ? body.sectionContext : "";
 
     if (!text || text.trim().length < 10) {
       return NextResponse.json(
@@ -47,7 +49,13 @@ JSON配列のみを出力してください：
       .replace(/\s*```\s*$/, "")
       .trim();
 
-    const titles = JSON.parse(cleaned);
+    let titles: string[];
+    try {
+      titles = JSON.parse(cleaned);
+      if (!Array.isArray(titles)) throw new Error("Not an array");
+    } catch {
+      titles = [cleaned.trim()];
+    }
 
     return NextResponse.json({ titles });
   } catch (error) {

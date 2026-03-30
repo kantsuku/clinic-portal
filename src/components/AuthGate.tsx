@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { verifyPassword, type ClinicConfig } from "@/lib/clinics";
-import { saveAuthToken, loadAuthToken } from "@/lib/storage";
+import { saveAuthFlag, isAuthenticated } from "@/lib/storage";
 
 interface AuthGateProps {
   clinic: ClinicConfig;
@@ -11,11 +11,8 @@ interface AuthGateProps {
 
 export default function AuthGate({ clinic, children }: AuthGateProps) {
   const [authed, setAuthed] = useState(() => {
-    // パスワードなしなら常に認証済み
     if (!clinic.password) return true;
-    // トークンが保存済みなら認証済み
-    const saved = loadAuthToken(clinic.id);
-    return saved === clinic.password;
+    return isAuthenticated(clinic.id);
   });
   const [input, setInput] = useState("");
   const [error, setError] = useState(false);
@@ -25,7 +22,7 @@ export default function AuthGate({ clinic, children }: AuthGateProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (verifyPassword(clinic.id, input)) {
-      saveAuthToken(clinic.id, input);
+      saveAuthFlag(clinic.id);
       setAuthed(true);
     } else {
       setError(true);

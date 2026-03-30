@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 interface Toast {
   id: number;
@@ -10,7 +10,6 @@ interface Toast {
 let toastId = 0;
 const listeners: ((toast: Toast) => void)[] = [];
 
-/** どこからでも呼べるトースト表示関数 */
 export function showToast(message: string) {
   const toast: Toast = { id: ++toastId, message };
   listeners.forEach((fn) => fn(toast));
@@ -20,14 +19,22 @@ export default function ToastContainer() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+
     const handler = (toast: Toast) => {
       setToasts((prev) => [...prev, toast]);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== toast.id));
+        timers.delete(timer);
       }, 2500);
+      timers.add(timer);
     };
+
     listeners.push(handler);
     return () => {
+      // 全タイマーをクリーンアップ
+      timers.forEach((t) => clearTimeout(t));
+      timers.clear();
       const idx = listeners.indexOf(handler);
       if (idx >= 0) listeners.splice(idx, 1);
     };
