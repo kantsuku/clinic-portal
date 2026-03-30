@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo, use } from "react";
 import { sections, getSectionById, getDefaultValues } from "@/lib/schema";
 import { getClinicConfig } from "@/lib/clinics";
 import { loadClinicData, saveLastSection, getLastSection } from "@/lib/storage";
+import { DEMO_DATA } from "@/lib/seed-data";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import Dashboard from "@/components/Dashboard";
 import SectionForm from "@/components/SectionForm";
@@ -27,6 +28,8 @@ export default function ClinicPage({
     if (typeof window === "undefined") return getDefaultValues();
     const saved = loadClinicData(clinicId);
     if (saved) return { ...getDefaultValues(), ...saved.data };
+    // デモ医院はシードデータを初期表示
+    if (clinicId === "demo") return { ...getDefaultValues(), ...DEMO_DATA };
     return getDefaultValues();
   });
   const [showChat, setShowChat] = useState(false);
@@ -101,7 +104,7 @@ export default function ClinicPage({
             医院が見つかりません
           </h1>
           <p className="text-sm" style={{ color: "var(--md-on-surface-variant)" }}>URLを確認してください</p>
-          <p className="text-xs mt-4 font-mono" style={{ color: "var(--md-on-surface-variant)", opacity: 0.5 }}>
+          <p className="text-xs mt-4 font-mono" style={{ color: "var(--md-on-surface-variant)", }}>
             clinic_id: {clinicId}
           </p>
         </div>

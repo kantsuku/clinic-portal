@@ -45,7 +45,7 @@ export default function GuideMode({
   if (!field) return null;
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="max-w-lg mx-auto" role="form" aria-label={`${section.title} ガイドモード`}>
       {/* Progress */}
       <div className="flex items-center gap-3 mb-4">
         <button

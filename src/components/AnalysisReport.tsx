@@ -51,7 +51,7 @@ export default function AnalysisReport({ values, onClose }: AnalysisReportProps)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" role="dialog" aria-label="AI総合診断" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
         className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto mx-4"

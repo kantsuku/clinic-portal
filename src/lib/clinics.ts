@@ -35,7 +35,11 @@ export function getAllClinics(): ClinicConfig[] {
 
 /** クリニックを取得 */
 export function getClinicConfig(id: string): ClinicConfig | null {
-  return getAllClinics().find((c) => c.id === id) || null;
+  // まず登録済みリストから検索
+  const found = getAllClinics().find((c) => c.id === id);
+  if (found) return found;
+  // デフォルトクリニックにもフォールバック
+  return DEFAULT_CLINICS.find((c) => c.id === id) || null;
 }
 
 /** クリニックを追加 */

@@ -90,6 +90,8 @@ export default function PonkoChat({ values, onClose }: PonkoChatProps) {
     <div
       className="fixed inset-0 z-50 flex flex-col"
       style={{ background: "var(--md-surface)" }}
+      role="dialog"
+      aria-label="ぽん子に相談"
     >
       {/* Header */}
       <div
@@ -123,7 +125,7 @@ export default function PonkoChat({ values, onClose }: PonkoChatProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" aria-live="polite">
         {messages.map((msg, i) => (
           <div
             key={i}
@@ -158,7 +160,7 @@ export default function PonkoChat({ values, onClose }: PonkoChatProps) {
         className="shrink-0 px-4 py-3 flex gap-2 safe-bottom"
         style={{
           background: "var(--md-surface-container)",
-          boxShadow: "0 -1px 3px rgba(0,0,0,0.1)",
+          boxShadow: "var(--md-elevation-1)",
         }}
       >
         <input

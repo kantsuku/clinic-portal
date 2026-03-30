@@ -318,14 +318,14 @@ export default function RepeaterInput({
                       onClick={() => applyTitle(index, t)}
                       className="w-full text-left text-sm font-medium px-3 py-2 transition-colors"
                       style={{
-                        background: "rgba(255,255,255,0.7)",
+                        background: "var(--md-surface-container)",
                         color: "var(--md-on-surface)",
                         borderRadius: "var(--md-shape-corner-sm)",
                         border: "none",
                         cursor: "pointer",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(255,255,255,1)";
+                        e.currentTarget.style.background = "var(--md-surface-container-low)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "rgba(255,255,255,0.7)";

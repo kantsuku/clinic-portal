@@ -92,7 +92,7 @@ export default function PrimaryInfoMeter({
                 key={i}
                 className="text-[10px] px-2 py-0.5 font-medium"
                 style={{
-                  background: "rgba(255,255,255,0.7)",
+                  background: "var(--md-surface-container)",
                   color,
                   borderRadius: "100px",
                 }}

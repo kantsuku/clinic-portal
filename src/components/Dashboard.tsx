@@ -105,7 +105,7 @@ export default function Dashboard({ values, onSelectSection, clinicId, onOpenCha
         </div>
         <p
           className="text-[10px] mt-1.5"
-          style={{ color: "var(--md-on-surface-variant)", opacity: 0.5 }}
+          style={{ color: "var(--md-on-surface-variant)", }}
         >
           タップでぽん子が別のことを言うよ
         </p>
@@ -152,7 +152,7 @@ export default function Dashboard({ values, onSelectSection, clinicId, onOpenCha
           <div
             className="mt-3 p-2.5"
             style={{
-              background: "rgba(255,255,255,0.5)",
+              background: "var(--md-surface-container)",
               borderRadius: "var(--md-shape-corner-md)",
             }}
           >
@@ -205,7 +205,7 @@ export default function Dashboard({ values, onSelectSection, clinicId, onOpenCha
             onClick={() => setShowInfoModal(true)}
             className="w-full mt-3 py-2.5 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
             style={{
-              background: "rgba(255,255,255,0.5)",
+              background: "var(--md-surface-container)",
               color: "var(--md-primary)",
               borderRadius: "100px",
               border: "1px solid rgba(26,115,232,0.3)",
