@@ -1,35 +1,104 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { sections, getSectionById, getDefaultValues } from "@/lib/schema";
-import Dashboard from "@/components/Dashboard";
-import SectionForm from "@/components/SectionForm";
+import { getAllClinics } from "@/lib/clinics";
 
 export default function Home() {
-  const [currentSection, setCurrentSection] = useState<string | null>(null);
-  const [values, setValues] = useState<Record<string, string>>(getDefaultValues);
-
-  const handleFieldChange = useCallback((fieldName: string, value: string) => {
-    setValues((prev) => ({ ...prev, [fieldName]: value }));
-  }, []);
-
-  const section = currentSection ? getSectionById(currentSection) : null;
+  const clinics = getAllClinics();
 
   return (
-    <main className="px-4 py-8 sm:py-12">
-      {section ? (
-        <SectionForm
-          section={section}
-          values={values}
-          onChange={handleFieldChange}
-          onBack={() => setCurrentSection(null)}
+    <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-sm text-center">
+        <img
+          src="/ponko.png"
+          alt="ぽん子"
+          className="w-20 h-20 mx-auto mb-4 ponko-jump"
         />
-      ) : (
-        <Dashboard
-          values={values}
-          onSelectSection={setCurrentSection}
-        />
-      )}
+        <h1
+          className="text-[22px] font-medium tracking-tight mb-1"
+          style={{ color: "var(--md-on-surface)" }}
+        >
+          Clinic Portal{" "}
+          <span
+            className="font-normal text-sm"
+            style={{ color: "var(--md-on-surface-variant)" }}
+          >
+            by Ponko
+          </span>
+        </h1>
+        <p
+          className="text-sm mb-8"
+          style={{ color: "var(--md-on-surface-variant)" }}
+        >
+          医院を選んでください
+        </p>
+
+        <div className="space-y-2">
+          {clinics.map((clinic) => (
+            <a
+              key={clinic.id}
+              href={`/clinic/${clinic.id}`}
+              className="block w-full text-left p-4 md-state-layer"
+              style={{
+                background: "var(--md-surface-container)",
+                borderRadius: "var(--md-shape-corner-lg)",
+                boxShadow: "var(--md-elevation-1)",
+                textDecoration: "none",
+                color: "var(--md-on-surface)",
+                transition: "box-shadow 0.2s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.boxShadow = "var(--md-elevation-2)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.boxShadow = "var(--md-elevation-1)")
+              }
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center text-lg font-bold"
+                  style={{
+                    background: "var(--md-primary-container)",
+                    color: "var(--md-primary)",
+                    borderRadius: "var(--md-shape-corner-md)",
+                  }}
+                >
+                  {clinic.name[0]}
+                </div>
+                <div>
+                  <p className="font-medium text-sm">{clinic.name}</p>
+                  <p
+                    className="text-xs font-mono"
+                    style={{ color: "var(--md-on-surface-variant)" }}
+                  >
+                    {clinic.id}
+                  </p>
+                </div>
+                <svg
+                  className="w-5 h-5 ml-auto"
+                  style={{ color: "var(--md-on-surface-variant)" }}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <p
+          className="text-[10px] mt-8"
+          style={{ color: "var(--md-on-surface-variant)", opacity: 0.5 }}
+        >
+          管理者用: clinics.ts にクリニックを追加してください
+        </p>
+      </div>
     </main>
   );
 }
