@@ -16,7 +16,9 @@ function formatTime(date: Date): string {
 export default function SaveIndicator({ lastSaved, isDirty }: SaveIndicatorProps) {
   return (
     <div
-      className="fixed bottom-4 right-4 z-40 flex items-center gap-2 px-3 py-2 text-xs font-medium"
+      role="status"
+      aria-label={isDirty ? "保存中" : lastSaved ? "保存済み" : ""}
+      className="fixed bottom-4 right-4 z-40 flex items-center gap-2 px-3 py-2 text-xs font-medium safe-bottom"
       style={{
         background: isDirty ? "var(--md-secondary-container)" : "var(--md-surface-container)",
         color: isDirty ? "var(--md-on-secondary-container)" : "var(--md-on-surface-variant)",

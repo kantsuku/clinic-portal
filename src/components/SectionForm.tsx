@@ -166,7 +166,7 @@ export default function SectionForm({
               </div>
               <div
                 className="h-1 overflow-hidden"
-                style={{ background: "rgba(0,0,0,0.08)", borderRadius: "100px" }}
+                style={{ background: "var(--md-outline-variant)", borderRadius: "100px" }}
               >
                 <div
                   className="h-full transition-all duration-500"

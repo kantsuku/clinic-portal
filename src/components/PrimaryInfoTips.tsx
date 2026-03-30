@@ -222,13 +222,21 @@ export default function PrimaryInfoTips({ sectionId }: PrimaryInfoTipsProps) {
                 <button
                   key={i}
                   onClick={() => setCurrentTip(i)}
-                  className="w-2 h-2 rounded-full transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-full transition-colors"
                   style={{
-                    background: i === currentTip ? "var(--md-primary)" : "var(--md-outline-variant)",
+                    background: "transparent",
                     border: "none",
                     cursor: "pointer",
                   }}
-                />
+                  aria-label={`ヒント ${i + 1}`}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full block"
+                    style={{
+                      background: i === currentTip ? "var(--md-primary)" : "var(--md-outline-variant)",
+                    }}
+                  />
+                </button>
               ))}
             </div>
           )}

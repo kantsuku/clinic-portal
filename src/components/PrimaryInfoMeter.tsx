@@ -71,7 +71,7 @@ export default function PrimaryInfoMeter({
         <div
           className="h-1.5 overflow-hidden"
           style={{
-            background: "rgba(0,0,0,0.08)",
+            background: "var(--md-outline-variant)",
             borderRadius: "100px",
           }}
         >

@@ -82,6 +82,8 @@ export default function Dashboard({ values, onSelectSection, clinicId }: Dashboa
           src="/ponko.png"
           alt="ぽん子"
           className="w-20 h-20 mx-auto mb-3 ponko-jump cursor-pointer"
+          role="button"
+          aria-label="ぽん子のセリフを切り替える"
           onClick={() => setMessageSeed(Math.floor(Math.random() * 1000))}
         />
         <h1 className="text-[22px] font-medium tracking-tight mb-1" style={{ color: "var(--md-on-surface)" }}>
@@ -126,7 +128,7 @@ export default function Dashboard({ values, onSelectSection, clinicId }: Dashboa
         <div
           className="h-2 overflow-hidden"
           style={{
-            background: "rgba(26,115,232,0.15)",
+            background: "color-mix(in srgb, var(--md-primary) 15%, transparent)",
             borderRadius: "100px",
           }}
         >
@@ -139,7 +141,7 @@ export default function Dashboard({ values, onSelectSection, clinicId }: Dashboa
             }}
           />
         </div>
-        <p className="text-xs mt-2" style={{ color: "var(--md-on-primary-container)", opacity: 0.7 }}>
+        <p className="text-xs mt-2" style={{ color: "var(--md-on-surface-variant)" }}>
           {totalFilled} / {totalFields} 項目入力済み
         </p>
 
@@ -165,7 +167,7 @@ export default function Dashboard({ values, onSelectSection, clinicId }: Dashboa
                 </div>
                 <div
                   className="h-1.5 overflow-hidden"
-                  style={{ background: "rgba(0,0,0,0.08)", borderRadius: "100px" }}
+                  style={{ background: "var(--md-outline-variant)", borderRadius: "100px" }}
                 >
                   <div
                     className="h-full transition-all duration-500"

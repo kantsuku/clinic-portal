@@ -74,6 +74,16 @@ body {
   html { height: 100dvh; }
 }
 
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+}
+
+/* Safe area for notched devices */
+.safe-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
 /* M3 State layers */
 .md-state-layer {
   position: relative;

@@ -50,12 +50,15 @@ export default function SnsInput({ value, onChange }: SnsInputProps) {
     <div className="space-y-2">
       {SNS_PLATFORMS.map((p) => (
         <div key={p.key} className="flex items-center gap-3">
-          <label className="w-28 text-sm font-medium text-gray-600 shrink-0">
+          <label
+            className="w-28 text-sm shrink-0"
+            style={{ color: "var(--md-on-surface-variant)", fontWeight: 500 }}
+          >
             {p.label}
           </label>
           <input
             type="text"
-            className="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="flex-1"
             placeholder={p.placeholder}
             value={data[p.key]}
             onChange={(e) =>

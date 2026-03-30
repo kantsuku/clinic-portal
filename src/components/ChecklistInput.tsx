@@ -203,7 +203,7 @@ export default function ChecklistInput({
                     <button
                       key={opt.value}
                       onClick={() => setStatus(item, opt.value)}
-                      className="text-[11px] font-medium px-2.5 py-1 transition-all"
+                      className="text-[11px] font-medium px-3 py-2 min-h-[36px] transition-all"
                       style={{
                         background: state.status === opt.value ? opt.bg : "transparent",
                         color: state.status === opt.value ? opt.color : "var(--md-on-surface-variant)",
@@ -287,7 +287,7 @@ export default function ChecklistInput({
                         <button
                           key={opt.value}
                           onClick={() => setStatus(item, opt.value)}
-                          className="text-[11px] font-medium px-2.5 py-1 transition-all"
+                          className="text-[11px] font-medium px-3 py-2 min-h-[36px] transition-all"
                           style={{
                             background: state.status === opt.value ? opt.bg : "transparent",
                             color: state.status === opt.value ? opt.color : "var(--md-on-surface-variant)",

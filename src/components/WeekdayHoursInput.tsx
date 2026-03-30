@@ -95,7 +95,10 @@ export default function WeekdayHoursInput({
 
   return (
     <div className="space-y-2">
-      <div className="hidden sm:grid grid-cols-[80px_1fr_1fr_1fr_1fr_60px] gap-2 text-xs text-gray-500 font-medium px-1">
+      <div
+        className="hidden sm:grid grid-cols-[80px_1fr_1fr_1fr_1fr_60px] gap-2 text-xs px-1"
+        style={{ color: "var(--md-on-surface-variant)", fontWeight: 500 }}
+      >
         <div></div>
         <div>午前 開始</div>
         <div>午前 終了</div>
@@ -106,42 +109,50 @@ export default function WeekdayHoursInput({
       {WEEKDAYS.map((day) => (
         <div
           key={day}
-          className={`grid grid-cols-2 sm:grid-cols-[80px_1fr_1fr_1fr_1fr_60px] gap-2 items-center p-2 rounded-lg ${
-            schedule[day].closed ? "bg-gray-100 opacity-60" : "bg-white"
-          }`}
+          className="grid grid-cols-2 sm:grid-cols-[80px_1fr_1fr_1fr_1fr_60px] gap-2 items-center p-2"
+          style={{
+            borderRadius: "var(--md-shape-corner-sm)",
+            background: schedule[day].closed
+              ? "var(--md-surface-container-low)"
+              : "var(--md-surface-container)",
+            opacity: schedule[day].closed ? 0.6 : 1,
+          }}
         >
-          <span className="font-medium text-sm col-span-2 sm:col-span-1">
+          <span
+            className="text-sm col-span-2 sm:col-span-1"
+            style={{ color: "var(--md-on-surface)", fontWeight: 500 }}
+          >
             {day}
           </span>
           <input
             type="time"
-            className="border rounded px-2 py-1 text-sm disabled:bg-gray-100"
+            className="w-full"
             value={schedule[day].am_start}
             disabled={schedule[day].closed}
             onChange={(e) => updateDay(day, "am_start", e.target.value)}
           />
           <input
             type="time"
-            className="border rounded px-2 py-1 text-sm disabled:bg-gray-100"
+            className="w-full"
             value={schedule[day].am_end}
             disabled={schedule[day].closed}
             onChange={(e) => updateDay(day, "am_end", e.target.value)}
           />
           <input
             type="time"
-            className="border rounded px-2 py-1 text-sm disabled:bg-gray-100"
+            className="w-full"
             value={schedule[day].pm_start}
             disabled={schedule[day].closed}
             onChange={(e) => updateDay(day, "pm_start", e.target.value)}
           />
           <input
             type="time"
-            className="border rounded px-2 py-1 text-sm disabled:bg-gray-100"
+            className="w-full"
             value={schedule[day].pm_end}
             disabled={schedule[day].closed}
             onChange={(e) => updateDay(day, "pm_end", e.target.value)}
           />
-          <label className="flex items-center gap-1 text-sm cursor-pointer justify-center">
+          <label className="flex items-center gap-1 text-sm cursor-pointer justify-center min-h-[44px]">
             <input
               type="checkbox"
               checked={schedule[day].closed}
