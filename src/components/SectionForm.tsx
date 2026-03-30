@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { SectionDef } from "@/lib/schema";
+import { sections } from "@/lib/schema";
 import FormField from "./FormField";
 import PrimaryInfoTips from "./PrimaryInfoTips";
 import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";
@@ -11,6 +12,7 @@ interface SectionFormProps {
   values: Record<string, string>;
   onChange: (fieldName: string, value: string) => void;
   onBack: () => void;
+  onNavigate?: (sectionId: string) => void;
 }
 
 export default function SectionForm({
@@ -18,6 +20,7 @@ export default function SectionForm({
   values,
   onChange,
   onBack,
+  onNavigate,
 }: SectionFormProps) {
   const filledCount = section.fields.filter(
     (f) => values[f.name]?.trim()
@@ -173,6 +176,69 @@ export default function SectionForm({
           </div>
         ))}
       </div>
+
+      {/* Section navigation */}
+      {onNavigate && (() => {
+        const currentIdx = sections.findIndex((s) => s.id === section.id);
+        const prevSection = currentIdx > 0 ? sections[currentIdx - 1] : null;
+        const nextSection = currentIdx < sections.length - 1 ? sections[currentIdx + 1] : null;
+
+        return (
+          <div className="flex gap-2 mt-6">
+            {prevSection && (
+              <button
+                onClick={() => { onNavigate(prevSection.id); window.scrollTo(0, 0); }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium"
+                style={{
+                  background: "var(--md-surface-container)",
+                  color: "var(--md-on-surface-variant)",
+                  borderRadius: "var(--md-shape-corner-md)",
+                  border: "1px solid var(--md-outline-variant)",
+                  cursor: "pointer",
+                }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                {prevSection.icon} {prevSection.title}
+              </button>
+            )}
+            {nextSection && (
+              <button
+                onClick={() => { onNavigate(nextSection.id); window.scrollTo(0, 0); }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium"
+                style={{
+                  background: "var(--md-primary)",
+                  color: "var(--md-on-primary)",
+                  borderRadius: "var(--md-shape-corner-md)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {nextSection.icon} {nextSection.title}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+            {!nextSection && (
+              <button
+                onClick={() => { onBack(); window.scrollTo(0, 0); }}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium"
+                style={{
+                  background: "var(--md-tertiary)",
+                  color: "var(--md-on-primary)",
+                  borderRadius: "var(--md-shape-corner-md)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                ダッシュボードに戻る
+              </button>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

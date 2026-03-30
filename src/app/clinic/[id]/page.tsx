@@ -9,6 +9,7 @@ import Dashboard from "@/components/Dashboard";
 import SectionForm from "@/components/SectionForm";
 import AuthGate from "@/components/AuthGate";
 import SaveIndicator from "@/components/SaveIndicator";
+import ToastContainer from "@/components/Toast";
 
 export default function ClinicPage({
   params,
@@ -84,15 +85,18 @@ export default function ClinicPage({
             values={values}
             onChange={handleFieldChange}
             onBack={() => setCurrentSection(null)}
+            onNavigate={setCurrentSection}
           />
         ) : (
           <Dashboard
             values={values}
             onSelectSection={setCurrentSection}
+            clinicId={clinicId}
           />
         )}
       </main>
       <SaveIndicator lastSaved={lastSaved} isDirty={isDirty} />
+      <ToastContainer />
     </AuthGate>
   );
 }

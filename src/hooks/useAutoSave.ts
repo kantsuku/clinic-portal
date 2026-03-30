@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { saveClinicData } from "@/lib/storage";
+import { showToast } from "@/components/Toast";
 
 interface UseAutoSaveOptions {
   clinicId: string;
@@ -35,6 +36,7 @@ export function useAutoSave({ clinicId, data, interval = 2000 }: UseAutoSaveOpti
       saveClinicData(clinicId, data);
       setLastSaved(new Date());
       setIsDirty(false);
+      showToast("自動保存しました");
     }, interval);
 
     return () => {

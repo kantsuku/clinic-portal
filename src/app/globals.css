@@ -50,6 +50,30 @@ body {
   animation: ponko-jump 2s ease-in-out infinite;
 }
 
+/* Toast slide down */
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-down {
+  animation: slide-down 0.25s ease-out;
+}
+
+/* Progress bar glow on change */
+@keyframes bar-glow {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+  100% { filter: brightness(1); }
+}
+.bar-glow {
+  animation: bar-glow 0.6s ease-out;
+}
+
+/* Smooth scroll for mobile keyboard */
+@supports (height: 100dvh) {
+  html { height: 100dvh; }
+}
+
 /* M3 State layers */
 .md-state-layer {
   position: relative;

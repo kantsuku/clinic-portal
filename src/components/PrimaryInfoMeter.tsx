@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   analyzePrimaryInfo,
   getScoreLabel,
@@ -28,9 +28,16 @@ export default function PrimaryInfoMeter({
   minLength = 5,
   onAppendText,
 }: PrimaryInfoMeterProps) {
+  // デバウンス: 入力中は500ms待ってから分析
+  const [debouncedText, setDebouncedText] = useState(text);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedText(text), 500);
+    return () => clearTimeout(timer);
+  }, [text]);
+
   const analysis: AnalysisResult = useMemo(
-    () => analyzePrimaryInfo(text),
-    [text]
+    () => analyzePrimaryInfo(debouncedText),
+    [debouncedText]
   );
 
   if (!text || text.trim().length < minLength) return null;

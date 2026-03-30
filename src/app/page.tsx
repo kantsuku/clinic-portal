@@ -92,12 +92,16 @@ export default function Home() {
           ))}
         </div>
 
-        <p
-          className="text-[10px] mt-8"
-          style={{ color: "var(--md-on-surface-variant)", opacity: 0.5 }}
+        <a
+          href="/admin"
+          className="block mt-6 text-xs font-medium py-2"
+          style={{
+            color: "var(--md-on-surface-variant)",
+            textDecoration: "none",
+          }}
         >
-          管理者用: clinics.ts にクリニックを追加してください
-        </p>
+          管理画面
+        </a>
       </div>
     </main>
   );
