@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { SectionDef } from "@/lib/schema";
 import { sections } from "@/lib/schema";
 import FormField from "./FormField";
 import PrimaryInfoTips from "./PrimaryInfoTips";
 import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";
+import GuideMode from "./GuideMode";
 
 interface SectionFormProps {
   section: SectionDef;
@@ -22,6 +23,8 @@ export default function SectionForm({
   onBack,
   onNavigate,
 }: SectionFormProps) {
+  const [guideMode, setGuideMode] = useState(false);
+
   const filledCount = section.fields.filter(
     (f) => values[f.name]?.trim()
   ).length;
@@ -41,6 +44,17 @@ export default function SectionForm({
   }, [section, values]);
 
   const primaryLabel = sectionPrimaryScore ? getScoreLabel(sectionPrimaryScore.score) : null;
+
+  if (guideMode) {
+    return (
+      <GuideMode
+        section={section}
+        values={values}
+        onChange={onChange}
+        onExit={() => setGuideMode(false)}
+      />
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto">
@@ -91,6 +105,21 @@ export default function SectionForm({
             </p>
           </div>
         </div>
+        <button
+          onClick={() => setGuideMode(true)}
+          className="flex items-center gap-1.5 mb-3 text-xs font-medium px-3 py-1.5"
+          style={{
+            background: "var(--md-tertiary-container)",
+            color: "var(--md-tertiary)",
+            borderRadius: "100px",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <img src="/ponko.png" alt="" className="w-4 h-4" />
+          ぽん子がガイドします
+        </button>
+
         <div className="flex items-center gap-3">
           <div
             className="flex-1 h-1.5 overflow-hidden"

@@ -7,6 +7,7 @@ import PaymentInput from "./PaymentInput";
 import RepeaterInput from "./RepeaterInput";
 import ChecklistInput from "./ChecklistInput";
 import ToneMannerInput from "./ToneMannerInput";
+import StaffRepeater from "./StaffRepeater";
 import PrimaryInfoMeter from "./PrimaryInfoMeter";
 import RewriteButton from "./RewriteButton";
 
@@ -149,6 +150,10 @@ export default function FormField({ field, value, onChange }: FormFieldProps) {
 
       {field.type === "payment" && (
         <PaymentInput value={value} onChange={onChange} />
+      )}
+
+      {field.type === "staff-repeater" && (
+        <StaffRepeater value={value} onChange={onChange} />
       )}
 
       {field.type === "tone-manner" && field.toneCategories && (

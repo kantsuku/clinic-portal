@@ -15,7 +15,8 @@ export type FieldType =
   | "sns"
   | "payment"
   | "checklist"
-  | "tone-manner";
+  | "tone-manner"
+  | "staff-repeater";
 
 export interface FieldDef {
   name: string;
@@ -280,6 +281,14 @@ export const sections: SectionDef[] = [
           "例：\nインプラント専門医\n日本口腔インプラント学会 所属",
         dnaSheet: "10_Staff_Master",
         dnaField: "qualification_summary",
+      },
+      {
+        name: "other_staff",
+        label: "その他のスタッフ",
+        type: "staff-repeater",
+        hint: "院長先生以外のスタッフ情報を追加できます！採用ページにも使えますよ！",
+        dnaSheet: "10_Staff_Master",
+        dnaField: "name",
       },
     ],
   },

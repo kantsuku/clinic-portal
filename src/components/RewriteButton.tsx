@@ -27,13 +27,13 @@ export default function RewriteButton({
   async function handleRewrite() {
     setLoading(true);
     setError(null);
-    setPreview(null);
+    setPreview("");
 
     try {
       const res = await fetch("/api/rewrite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, text, context }),
+        body: JSON.stringify({ title, text, context, stream: true }),
       });
 
       if (!res.ok) {
@@ -41,10 +41,31 @@ export default function RewriteButton({
         throw new Error(data.error || "リライトに失敗しました");
       }
 
-      const data = await res.json();
-      setPreview(data.rewritten);
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("ストリーム取得に失敗しました");
+
+      const decoder = new TextDecoder();
+      let result = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ") && line !== "data: [DONE]") {
+            try {
+              const data = JSON.parse(line.slice(6));
+              result += data.text;
+              setPreview(result);
+            } catch {}
+          }
+        }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "エラーが発生しました");
+      if (!preview) setPreview(null);
     } finally {
       setLoading(false);
     }
@@ -64,7 +85,7 @@ export default function RewriteButton({
   return (
     <div className="mt-2">
       {/* リライトボタン */}
-      {!preview && (
+      {(preview === null || preview === undefined) && !loading && (
         <button
           type="button"
           onClick={handleRewrite}
@@ -118,7 +139,7 @@ export default function RewriteButton({
       )}
 
       {/* プレビュー */}
-      {preview && (
+      {preview !== null && preview !== undefined && (preview || loading) && (
         <div
           className="p-4 space-y-3"
           style={{

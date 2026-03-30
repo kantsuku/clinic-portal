@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import PrimaryInfoMeter from "./PrimaryInfoMeter";
 import RewriteButton from "./RewriteButton";
 
@@ -112,10 +112,10 @@ export default function ChecklistInput({
   }
 
   const currentCat = categories[activeTab];
-  const allDefinedItems = new Set(categories.flatMap((c) => c.items));
-  const customItems = Object.keys(states).filter((k) => !allDefinedItems.has(k));
-  const yesCount = Object.values(states).filter((s) => s.status === "yes" || s.status === "strength").length;
-  const strengthCount = Object.values(states).filter((s) => s.status === "strength").length;
+  const allDefinedItems = useMemo(() => new Set(categories.flatMap((c) => c.items)), [categories]);
+  const customItems = useMemo(() => Object.keys(states).filter((k) => !allDefinedItems.has(k)), [states, allDefinedItems]);
+  const yesCount = useMemo(() => Object.values(states).filter((s) => s.status === "yes" || s.status === "strength").length, [states]);
+  const strengthCount = useMemo(() => Object.values(states).filter((s) => s.status === "strength").length, [states]);
 
   return (
     <div className="space-y-3">
