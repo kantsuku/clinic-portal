@@ -74,6 +74,22 @@ body {
   html { height: 100dvh; }
 }
 
+/* Confetti celebration */
+@keyframes confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.confetti-piece {
+  position: fixed;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  animation: confetti-fall 2.5s ease-out forwards;
+  z-index: 9999;
+  pointer-events: none;
+}
+
 /* Focus visible for accessibility */
 :focus-visible {
   outline: 2px solid var(--md-primary);

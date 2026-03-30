@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useCallback, useEffect, use } from "react";
+import { useState, useCallback, useEffect, useMemo, use } from "react";
 import { sections, getSectionById, getDefaultValues } from "@/lib/schema";
 import { getClinicConfig } from "@/lib/clinics";
-import { loadClinicData } from "@/lib/storage";
+import { loadClinicData, saveLastSection, getLastSection } from "@/lib/storage";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import Dashboard from "@/components/Dashboard";
 import SectionForm from "@/components/SectionForm";
 import AuthGate from "@/components/AuthGate";
 import SaveIndicator from "@/components/SaveIndicator";
-import ToastContainer from "@/components/Toast";
+import ToastContainer, { showToast } from "@/components/Toast";
+import PonkoChat from "@/components/PonkoChat";
+import AnalysisReport from "@/components/AnalysisReport";
+import Confetti from "@/components/Confetti";
 
 export default function ClinicPage({
   params,
@@ -21,29 +24,72 @@ export default function ClinicPage({
 
   const [currentSection, setCurrentSection] = useState<string | null>(null);
   const [values, setValues] = useState<Record<string, string>>(() => {
-    // 初期値: localStorage から復元、なければデフォルト
     if (typeof window === "undefined") return getDefaultValues();
     const saved = loadClinicData(clinicId);
     if (saved) return { ...getDefaultValues(), ...saved.data };
     return getDefaultValues();
   });
+  const [showChat, setShowChat] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [confettiTrigger, setConfettiTrigger] = useState(false);
+  const [showWelcomeBack, setShowWelcomeBack] = useState(false);
+  const [lastSectionName, setLastSectionName] = useState<string | null>(null);
 
   // 自動保存
-  const { lastSaved, isDirty, saveNow } = useAutoSave({
-    clinicId,
-    data: values,
-  });
+  const { lastSaved, isDirty } = useAutoSave({ clinicId, data: values });
+
+  // 途中復帰ガイド
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const lastId = getLastSection(clinicId);
+    if (lastId) {
+      const sec = getSectionById(lastId);
+      if (sec) {
+        setLastSectionName(sec.title);
+        setShowWelcomeBack(true);
+        setTimeout(() => setShowWelcomeBack(false), 8000);
+      }
+    }
+  }, [clinicId]);
+
+  // セクション変更時に保存
+  function handleSectionChange(sectionId: string | null) {
+    setCurrentSection(sectionId);
+    if (sectionId) saveLastSection(clinicId, sectionId);
+  }
 
   const handleFieldChange = useCallback((fieldName: string, value: string) => {
     setValues((prev) => ({ ...prev, [fieldName]: value }));
   }, []);
 
+  // セクション完了検知 → 紙吹雪
+  const prevFilledRef = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const s of sections) {
+      counts[s.id] = s.fields.filter((f) => values[f.name]?.trim()).length;
+    }
+    return counts;
+  }, []);
+
+  useEffect(() => {
+    if (!currentSection) return;
+    const section = getSectionById(currentSection);
+    if (!section) return;
+    const filled = section.fields.filter((f) => values[f.name]?.trim()).length;
+    const total = section.fields.length;
+    if (filled === total && total > 0 && prevFilledRef[currentSection] < total) {
+      setConfettiTrigger(true);
+      showToast(`${section.icon} ${section.title} 完了！おめでとうございます！`);
+      setTimeout(() => setConfettiTrigger(false), 100);
+    }
+    prevFilledRef[currentSection] = filled;
+  }, [values, currentSection]);
+
   // 存在しないクリニック
   if (!clinic) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <div
-          className="w-full max-w-sm p-8 text-center"
+        <div className="w-full max-w-sm p-8 text-center"
           style={{
             background: "var(--md-surface-container)",
             borderRadius: "var(--md-shape-corner-xl)",
@@ -51,22 +97,11 @@ export default function ClinicPage({
           }}
         >
           <img src="/ponko.png" alt="ぽん子" className="w-16 h-16 mx-auto mb-4" />
-          <h1
-            className="text-lg font-medium mb-2"
-            style={{ color: "var(--md-on-surface)" }}
-          >
+          <h1 className="text-lg font-medium mb-2" style={{ color: "var(--md-on-surface)" }}>
             医院が見つかりません
           </h1>
-          <p
-            className="text-sm"
-            style={{ color: "var(--md-on-surface-variant)" }}
-          >
-            URLを確認してください
-          </p>
-          <p
-            className="text-xs mt-4 font-mono"
-            style={{ color: "var(--md-on-surface-variant)", opacity: 0.5 }}
-          >
+          <p className="text-sm" style={{ color: "var(--md-on-surface-variant)" }}>URLを確認してください</p>
+          <p className="text-xs mt-4 font-mono" style={{ color: "var(--md-on-surface-variant)", opacity: 0.5 }}>
             clinic_id: {clinicId}
           </p>
         </div>
@@ -79,24 +114,59 @@ export default function ClinicPage({
   return (
     <AuthGate clinic={clinic}>
       <main className="px-4 py-8 sm:py-12 pb-20">
+        {/* 途中復帰バナー */}
+        {showWelcomeBack && !currentSection && lastSectionName && (
+          <div
+            className="max-w-lg mx-auto mb-4 flex items-center gap-3 p-3 cursor-pointer animate-slide-down"
+            style={{
+              background: "var(--md-primary-container)",
+              borderRadius: "var(--md-shape-corner-lg)",
+            }}
+            onClick={() => {
+              const lastId = getLastSection(clinicId);
+              if (lastId) handleSectionChange(lastId);
+              setShowWelcomeBack(false);
+            }}
+          >
+            <img src="/ponko.png" alt="" className="w-8 h-8 ponko-jump" />
+            <div className="flex-1">
+              <p className="text-xs font-medium" style={{ color: "var(--md-primary)" }}>
+                おかえりなさい！
+              </p>
+              <p className="text-xs" style={{ color: "var(--md-on-primary-container)" }}>
+                前回は「{lastSectionName}」を編集してましたよ！続きからどうぞ！
+              </p>
+            </div>
+            <svg className="w-5 h-5 shrink-0" style={{ color: "var(--md-primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        )}
+
         {section ? (
           <SectionForm
             section={section}
             values={values}
             onChange={handleFieldChange}
-            onBack={() => setCurrentSection(null)}
-            onNavigate={setCurrentSection}
+            onBack={() => handleSectionChange(null)}
+            onNavigate={handleSectionChange}
           />
         ) : (
           <Dashboard
             values={values}
-            onSelectSection={setCurrentSection}
+            onSelectSection={handleSectionChange}
             clinicId={clinicId}
+            onOpenChat={() => setShowChat(true)}
+            onOpenAnalysis={() => setShowAnalysis(true)}
           />
         )}
       </main>
+
       <SaveIndicator lastSaved={lastSaved} isDirty={isDirty} />
       <ToastContainer />
+      <Confetti trigger={confettiTrigger} />
+      {showChat && <PonkoChat values={values} onClose={() => setShowChat(false)} />}
+      {showAnalysis && <AnalysisReport values={values} onClose={() => setShowAnalysis(false)} />}
     </AuthGate>
   );
 }

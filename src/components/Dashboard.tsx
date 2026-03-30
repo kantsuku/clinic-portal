@@ -11,9 +11,11 @@ interface DashboardProps {
   values: Record<string, string>;
   onSelectSection: (sectionId: string) => void;
   clinicId?: string;
+  onOpenChat?: () => void;
+  onOpenAnalysis?: () => void;
 }
 
-export default function Dashboard({ values, onSelectSection, clinicId }: DashboardProps) {
+export default function Dashboard({ values, onSelectSection, clinicId, onOpenChat, onOpenAnalysis }: DashboardProps) {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [messageSeed, setMessageSeed] = useState(() => Math.floor(Math.random() * 1000));
 
@@ -376,6 +378,42 @@ export default function Dashboard({ values, onSelectSection, clinicId }: Dashboa
           <p className="text-xs font-medium mb-3" style={{ color: "var(--md-on-surface-variant)" }}>
             ツール
           </p>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {onOpenChat && (
+              <button
+                onClick={onOpenChat}
+                className="text-xs font-medium px-3 py-2 flex items-center gap-1.5"
+                style={{
+                  background: "var(--md-primary)",
+                  color: "var(--md-on-primary)",
+                  borderRadius: "100px",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <img src="/ponko.png" alt="" className="w-4 h-4" />
+                ぽん子に相談
+              </button>
+            )}
+            {onOpenAnalysis && (
+              <button
+                onClick={onOpenAnalysis}
+                className="text-xs font-medium px-3 py-2 flex items-center gap-1.5"
+                style={{
+                  background: "var(--md-tertiary-container)",
+                  color: "var(--md-tertiary)",
+                  borderRadius: "100px",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                AI総合診断
+              </button>
+            )}
+          </div>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => exportAsText(clinicId, values)}

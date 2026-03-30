@@ -77,3 +77,42 @@ export function getLastSavedAt(clinicId: string): string | null {
   const saved = loadClinicData(clinicId);
   return saved?.updatedAt || null;
 }
+
+/** 最後にアクセスしたセクションを保存 */
+export function saveLastSection(clinicId: string, sectionId: string): void {
+  try {
+    localStorage.setItem(`${STORAGE_PREFIX}:${clinicId}:lastSection`, sectionId);
+  } catch {}
+}
+
+/** 最後にアクセスしたセクションを取得 */
+export function getLastSection(clinicId: string): string | null {
+  try {
+    return localStorage.getItem(`${STORAGE_PREFIX}:${clinicId}:lastSection`);
+  } catch {
+    return null;
+  }
+}
+
+/** 変更ログを追加 */
+export function addChangeLog(clinicId: string, fieldName: string, label: string): void {
+  try {
+    const key = `${STORAGE_PREFIX}:${clinicId}:changelog`;
+    const raw = localStorage.getItem(key);
+    const logs: { field: string; label: string; at: string }[] = raw ? JSON.parse(raw) : [];
+    logs.unshift({ field: fieldName, label, at: new Date().toISOString() });
+    // 最新100件まで保持
+    localStorage.setItem(key, JSON.stringify(logs.slice(0, 100)));
+  } catch {}
+}
+
+/** 変更ログを取得 */
+export function getChangeLogs(clinicId: string): { field: string; label: string; at: string }[] {
+  try {
+    const key = `${STORAGE_PREFIX}:${clinicId}:changelog`;
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
