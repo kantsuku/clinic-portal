@@ -168,7 +168,19 @@ export default function ClinicPage({
       <SaveIndicator lastSaved={lastSaved} isDirty={isDirty} />
       <ToastContainer />
       <Confetti trigger={confettiTrigger} />
-      {showChat && <PonkoChat values={values} onClose={() => setShowChat(false)} />}
+      {showChat && (
+        <PonkoChat
+          values={values}
+          onClose={() => setShowChat(false)}
+          onApplyToField={(fieldName, value) => {
+            setValues((prev) => ({ ...prev, [fieldName]: value }));
+          }}
+          onNavigateToSection={(sectionId) => {
+            setShowChat(false);
+            handleSectionChange(sectionId);
+          }}
+        />
+      )}
       {showAnalysis && <AnalysisReport values={values} onClose={() => setShowAnalysis(false)} />}
     </AuthGate>
   );
