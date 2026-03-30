@@ -34,7 +34,7 @@ export default function PrimaryInfoModal({ open, onClose }: PrimaryInfoModalProp
           />
         </div>
 
-        <div className="px-6 pb-8 pt-2">
+        <div className="px-4 sm:px-6 pb-8 pt-2">
           {/* Header */}
           <div className="flex items-center gap-3 mb-5">
             <img src="/ponko.png" alt="ぽん子" className="w-12 h-12" />

@@ -183,7 +183,7 @@ export default function PrimaryInfoTips({ sectionId }: PrimaryInfoTipsProps) {
               borderRadius: "var(--md-shape-corner-sm)",
             }}
           >
-            <p className="text-[10px] font-medium mb-1" style={{ color: "var(--md-error)" }}>
+            <p className="text-[11px] font-medium mb-1" style={{ color: "var(--md-error)" }}>
               よくある文章（テンプレ感あり）
             </p>
             <p className="text-xs" style={{ color: "var(--md-on-surface)" }}>
@@ -199,7 +199,7 @@ export default function PrimaryInfoTips({ sectionId }: PrimaryInfoTipsProps) {
               borderRadius: "var(--md-shape-corner-sm)",
             }}
           >
-            <p className="text-[10px] font-medium mb-1" style={{ color: "var(--md-tertiary)" }}>
+            <p className="text-[11px] font-medium mb-1" style={{ color: "var(--md-tertiary)" }}>
               一次情報が入った文章
             </p>
             <p className="text-xs" style={{ color: "var(--md-on-surface)" }}>

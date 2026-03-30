@@ -190,7 +190,7 @@ export default function SectionForm({
         {section.fields.map((field) => (
           <div
             key={field.name}
-            className="p-5"
+            className="p-4 sm:p-5"
             style={{
               background: "var(--md-surface-container)",
               borderRadius: "var(--md-shape-corner-lg)",
@@ -217,7 +217,7 @@ export default function SectionForm({
             {prevSection && (
               <button
                 onClick={() => { onNavigate(prevSection.id); window.scrollTo(0, 0); }}
-                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium"
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium min-h-[48px]"
                 style={{
                   background: "var(--md-surface-container)",
                   color: "var(--md-on-surface-variant)",
@@ -229,13 +229,13 @@ export default function SectionForm({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                {prevSection.icon} {prevSection.title}
+                {prevSection.title}
               </button>
             )}
             {nextSection && (
               <button
                 onClick={() => { onNavigate(nextSection.id); window.scrollTo(0, 0); }}
-                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium"
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium min-h-[48px]"
                 style={{
                   background: "var(--md-primary)",
                   color: "var(--md-on-primary)",
@@ -244,7 +244,7 @@ export default function SectionForm({
                   cursor: "pointer",
                 }}
               >
-                {nextSection.icon} {nextSection.title}
+                {nextSection.title}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>

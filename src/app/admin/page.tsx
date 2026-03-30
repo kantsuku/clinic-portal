@@ -230,7 +230,7 @@ export default function AdminPage() {
       )}
 
       <p
-        className="text-[10px] text-center mt-6"
+        className="text-[11px] text-center mt-6"
         style={{ color: "var(--md-on-surface-variant)", }}
       >
         URLをクリニックに共有: /clinic/クリニックID

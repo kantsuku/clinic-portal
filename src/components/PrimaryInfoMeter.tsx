@@ -90,7 +90,7 @@ export default function PrimaryInfoMeter({
             {analysis.detected.map((d, i) => (
               <span
                 key={i}
-                className="text-[10px] px-2 py-0.5 font-medium"
+                className="text-[11px] px-2 py-0.5 font-medium"
                 style={{
                   background: "var(--md-surface-container)",
                   color,
@@ -133,7 +133,7 @@ export default function PrimaryInfoMeter({
           {onAppendText && WRITING_STARTERS[m.type] && (
             <div className="pl-7">
               <p
-                className="text-[10px] font-medium mb-1"
+                className="text-[11px] font-medium mb-1"
                 style={{ color: "var(--md-on-surface-variant)" }}
               >
                 例えば...（タップで追記）
@@ -192,7 +192,7 @@ export default function PrimaryInfoMeter({
               {onAppendText && WRITING_STARTERS[m.type] && (
                 <div className="pl-7">
                   <p
-                    className="text-[10px] font-medium mb-1"
+                    className="text-[11px] font-medium mb-1"
                     style={{ color: "var(--md-on-surface-variant)" }}
                   >
                     例えば...

@@ -187,9 +187,9 @@ export default function ChecklistInput({
                 transition: "all 0.2s",
               }}
             >
-              <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="space-y-2 mb-2">
                 <span
-                  className="text-sm font-medium"
+                  className="text-sm font-medium block"
                   style={{
                     color: state.status === "none"
                       ? "var(--md-on-surface-variant)"
@@ -198,7 +198,7 @@ export default function ChecklistInput({
                 >
                   {item}
                 </span>
-                <div className="flex gap-1 shrink-0">
+                <div className="flex gap-1 flex-wrap">
                   {STATUS_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -278,11 +278,11 @@ export default function ChecklistInput({
                     transition: "all 0.2s",
                   }}
                 >
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-sm font-medium" style={{ color: "var(--md-on-surface)" }}>
+                  <div className="space-y-2 mb-2">
+                    <span className="text-sm font-medium block" style={{ color: "var(--md-on-surface)" }}>
                       {item}
                     </span>
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex gap-1 flex-wrap">
                       {STATUS_OPTIONS.filter((o) => o.value !== "none").map((opt) => (
                         <button
                           key={opt.value}
@@ -308,8 +308,8 @@ export default function ChecklistInput({
                             return next;
                           });
                         }}
-                        className="text-[11px] px-1.5 py-1 transition-colors"
-                        style={{ color: "var(--md-on-surface-variant)", background: "none", border: "none", cursor: "pointer" }}
+                        className="text-[11px] px-3 py-2 min-h-[36px] transition-colors"
+                        style={{ color: "var(--md-on-surface-variant)", background: "none", border: "1px solid var(--md-outline-variant)", borderRadius: "100px", cursor: "pointer" }}
                         onMouseEnter={(e) => (e.currentTarget.style.color = "var(--md-error)")}
                         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--md-on-surface-variant)")}
                       >

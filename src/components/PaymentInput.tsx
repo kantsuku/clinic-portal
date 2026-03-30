@@ -79,7 +79,7 @@ export default function PaymentInput({ value, onChange }: PaymentInputProps) {
           {opt.hasDetail && data[opt.key].enabled && (
             <input
               type="text"
-              className="ml-6 w-full max-w-md"
+              className="ml-6 w-[calc(100%-24px)]"
               placeholder={opt.detailLabel}
               value={data[opt.key].detail}
               onChange={(e) =>

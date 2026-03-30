@@ -104,7 +104,7 @@ export default function Dashboard({ values, onSelectSection, clinicId, onOpenCha
           <p>{getPonkoMessage(overallPct, messageSeed)}</p>
         </div>
         <p
-          className="text-[10px] mt-1.5"
+          className="text-[11px] mt-1.5"
           style={{ color: "var(--md-on-surface-variant)", }}
         >
           タップでぽん子が別のことを言うよ
@@ -314,7 +314,7 @@ export default function Dashboard({ values, onSelectSection, clinicId, onOpenCha
                         {sp && sectionPrimary?.score != null && (
                           <div className="flex items-center gap-1.5 mt-1.5">
                             <img src="/ponko.png" alt="" className="w-3.5 h-3.5" />
-                            <span className="text-[10px]" style={{ color: "var(--md-on-surface-variant)" }}>
+                            <span className="text-[11px]" style={{ color: "var(--md-on-surface-variant)" }}>
                               一次情報
                             </span>
                             <div
@@ -330,7 +330,7 @@ export default function Dashboard({ values, onSelectSection, clinicId, onOpenCha
                                 }}
                               />
                             </div>
-                            <span className="text-[10px] font-bold" style={{ color: sp.color }}>
+                            <span className="text-[11px] font-bold" style={{ color: sp.color }}>
                               {sectionPrimary.score}%
                             </span>
                           </div>
@@ -338,7 +338,7 @@ export default function Dashboard({ values, onSelectSection, clinicId, onOpenCha
 
                         {!sp && filled > 0 && (
                           <p
-                            className="text-[10px] mt-1 flex items-center gap-1"
+                            className="text-[11px] mt-1 flex items-center gap-1"
                             style={{ color: "var(--md-on-surface-variant)" }}
                             onClick={(e) => { e.stopPropagation(); setShowInfoModal(true); }}
                           >

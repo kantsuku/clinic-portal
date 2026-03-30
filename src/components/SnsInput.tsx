@@ -49,16 +49,16 @@ export default function SnsInput({ value, onChange }: SnsInputProps) {
   return (
     <div className="space-y-2">
       {SNS_PLATFORMS.map((p) => (
-        <div key={p.key} className="flex items-center gap-3">
+        <div key={p.key} className="space-y-1">
           <label
-            className="w-28 text-sm shrink-0"
+            className="text-xs block"
             style={{ color: "var(--md-on-surface-variant)", fontWeight: 500 }}
           >
             {p.label}
           </label>
           <input
             type="text"
-            className="flex-1"
+            className="w-full"
             placeholder={p.placeholder}
             value={data[p.key]}
             onChange={(e) =>

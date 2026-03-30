@@ -238,7 +238,7 @@ export default function RepeaterInput({
                 <button
                   type="button"
                   onClick={() => removeItem(index)}
-                  className="transition-colors p-1"
+                  className="transition-colors p-2 min-w-[36px] min-h-[36px] flex items-center justify-center"
                 style={{ color: "var(--md-on-surface-variant)" }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "var(--md-error)")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "var(--md-on-surface-variant)")}

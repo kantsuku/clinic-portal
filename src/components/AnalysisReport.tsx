@@ -66,7 +66,7 @@ export default function AnalysisReport({ values, onClose }: AnalysisReportProps)
           <div className="w-8 h-1 rounded-full" style={{ background: "var(--md-outline-variant)" }} />
         </div>
 
-        <div className="px-6 pb-8 pt-2">
+        <div className="px-4 sm:px-6 pb-8 pt-2">
           <div className="flex items-center gap-3 mb-5">
             <img src="/ponko.png" alt="ぽん子" className="w-10 h-10" />
             <div>
