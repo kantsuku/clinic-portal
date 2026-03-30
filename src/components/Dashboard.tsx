@@ -208,7 +208,7 @@ export default function Dashboard({ values, onSelectSection, clinicId, onOpenCha
               background: "var(--md-surface-container)",
               color: "var(--md-primary)",
               borderRadius: "100px",
-              border: "1px solid rgba(26,115,232,0.3)",
+              border: "1px solid var(--md-outline)",
               cursor: "pointer",
             }}
           >

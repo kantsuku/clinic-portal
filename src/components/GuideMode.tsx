@@ -94,7 +94,7 @@ export default function GuideMode({
           <p className="text-sm font-medium" style={{ color: "var(--md-on-primary-container)" }}>
             {field.label}
           </p>
-          <p className="text-xs mt-1" style={{ color: "var(--md-on-primary-container)", opacity: 0.8 }}>
+          <p className="text-xs mt-1" style={{ color: "var(--md-on-primary-container)", }}>
             {field.hint || "こちらを入力してください！"}
           </p>
         </div>

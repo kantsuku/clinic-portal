@@ -328,7 +328,7 @@ export default function RepeaterInput({
                         e.currentTarget.style.background = "var(--md-surface-container-low)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "rgba(255,255,255,0.7)";
+                        e.currentTarget.style.background = "var(--md-surface-container)";
                       }}
                     >
                       {t}
