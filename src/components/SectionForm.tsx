@@ -201,6 +201,7 @@ export default function SectionForm({
               field={field}
               value={values[field.name] || ""}
               onChange={(val) => onChange(field.name, val)}
+              allValues={values}
             />
           </div>
         ))}

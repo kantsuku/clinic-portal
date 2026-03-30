@@ -370,7 +370,7 @@ export const sections: SectionDef[] = [
         label: "診療理念・方針",
         type: "textarea",
         placeholder:
-          "例：当医院では、親身な医療をプロの立場で行うことが診療理念です。",
+          "例：{{clinic_name}}では、親身な医療をプロの立場で行うことが診療理念です。",
         hint: "先生が一番大切にしてること、教えてください！",
         dnaSheet: "03_DNA_Master",
         dnaField: "content",
@@ -413,7 +413,7 @@ export const sections: SectionDef[] = [
         label: "院長先生のご挨拶文",
         type: "textarea",
         placeholder:
-          "例：当院では多くの方にストレスなく通院いただけるよう、お一人おひとりのご要望をしっかりと伺い、ライフスタイルや価値観に沿った治療を行っています。",
+          "例：{{clinic_name}}では多くの方にストレスなく通院いただけるよう、お一人おひとりのご要望をしっかりと伺い、ライフスタイルや価値観に沿った治療を行っています。",
         hint: "HPに載せる院長メッセージです！ラフに書いてもらえればAIできれいにできますよ！",
         dnaSheet: "00_Clinic",
         dnaField: "director_greeting",

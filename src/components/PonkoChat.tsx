@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { sections } from "@/lib/schema";
+import { saveChatHistory, loadChatHistory } from "@/lib/storage";
 
 interface PonkoChatProps {
   values: Record<string, string>;
+  clinicId: string;
   onClose: () => void;
-  /** フィールドに値を反映するコールバック */
   onApplyToField?: (fieldName: string, value: string) => void;
-  /** 反映後にセクションを開くコールバック */
   onNavigateToSection?: (sectionId: string) => void;
 }
 
@@ -32,17 +32,19 @@ const APPLY_TARGETS = sections.flatMap((s) =>
 
 export default function PonkoChat({
   values,
+  clinicId,
   onClose,
   onApplyToField,
   onNavigateToSection,
 }: PonkoChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content:
-        "何でも聞いてくださいね！入力した内容について質問したり、「うちの強みって何？」「キャッチコピー考えて」とか、何でもOKですよ！\n\n回答が良かったら、そのまま入力項目に反映できますよ！",
-    },
-  ]);
+  const defaultMsg: Message = {
+    role: "assistant",
+    content: "何でも聞いてくださいね！「うちの強みって何？」「キャッチコピー考えて」とか、何でもOKですよ！\n\n回答はそのまま入力項目に反映できます！",
+  };
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = loadChatHistory(clinicId);
+    return saved && saved.length > 0 ? (saved as Message[]) : [defaultMsg];
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [applyingIdx, setApplyingIdx] = useState<number | null>(null);
@@ -51,6 +53,10 @@ export default function PonkoChat({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    // 会話履歴を保存
+    if (messages.length > 1 || messages[0]?.content !== defaultMsg.content) {
+      saveChatHistory(clinicId, messages);
+    }
   }, [messages]);
 
   function getClinicDataText(): string {
@@ -184,6 +190,22 @@ export default function PonkoChat({
             回答をそのまま入力項目に反映できます
           </p>
         </div>
+        <button
+          onClick={() => {
+            setMessages([defaultMsg]);
+            saveChatHistory(clinicId, []);
+          }}
+          className="text-xs px-2 py-1.5"
+          style={{
+            color: "var(--md-on-surface-variant)",
+            background: "transparent",
+            border: "1px solid var(--md-outline-variant)",
+            borderRadius: "100px",
+            cursor: "pointer",
+          }}
+        >
+          履歴クリア
+        </button>
         <button
           onClick={onClose}
           className="text-sm font-medium px-3 py-1.5"

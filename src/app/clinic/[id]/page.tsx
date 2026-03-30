@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useMemo, use } from "react";
 import { sections, getSectionById, getDefaultValues } from "@/lib/schema";
 import { getClinicConfig } from "@/lib/clinics";
-import { loadClinicData, saveLastSection, getLastSection } from "@/lib/storage";
+import { loadClinicData, saveLastSection, getLastSection, isOnboardingDone, setOnboardingDone } from "@/lib/storage";
 import { DEMO_DATA } from "@/lib/seed-data";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import Dashboard from "@/components/Dashboard";
@@ -14,6 +14,7 @@ import ToastContainer, { showToast } from "@/components/Toast";
 import PonkoChat from "@/components/PonkoChat";
 import AnalysisReport from "@/components/AnalysisReport";
 import Confetti from "@/components/Confetti";
+import Onboarding from "@/components/Onboarding";
 
 export default function ClinicPage({
   params,
@@ -37,6 +38,10 @@ export default function ClinicPage({
   const [confettiTrigger, setConfettiTrigger] = useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = useState(false);
   const [lastSectionName, setLastSectionName] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !isOnboardingDone(clinicId);
+  });
 
   // 自動保存
   const { lastSaved, isDirty } = useAutoSave({ clinicId, data: values });
@@ -168,9 +173,18 @@ export default function ClinicPage({
       <SaveIndicator lastSaved={lastSaved} isDirty={isDirty} />
       <ToastContainer />
       <Confetti trigger={confettiTrigger} />
+      {showOnboarding && (
+        <Onboarding
+          onComplete={() => {
+            setOnboardingDone(clinicId);
+            setShowOnboarding(false);
+          }}
+        />
+      )}
       {showChat && (
         <PonkoChat
           values={values}
+          clinicId={clinicId}
           onClose={() => setShowChat(false)}
           onApplyToField={(fieldName, value) => {
             setValues((prev) => ({ ...prev, [fieldName]: value }));

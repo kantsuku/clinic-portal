@@ -106,6 +106,61 @@ export function addChangeLog(clinicId: string, fieldName: string, label: string)
   } catch {}
 }
 
+/** 前回保存時のスナップショットを保存（diff用） */
+export function saveSnapshot(clinicId: string, data: Record<string, string>): void {
+  try {
+    localStorage.setItem(
+      `${STORAGE_PREFIX}:${clinicId}:snapshot`,
+      JSON.stringify(data)
+    );
+  } catch {}
+}
+
+/** 前回スナップショットを取得 */
+export function getSnapshot(clinicId: string): Record<string, string> | null {
+  try {
+    const raw = localStorage.getItem(`${STORAGE_PREFIX}:${clinicId}:snapshot`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** チャット履歴を保存 */
+export function saveChatHistory(clinicId: string, messages: { role: string; content: string }[]): void {
+  try {
+    localStorage.setItem(
+      `${STORAGE_PREFIX}:${clinicId}:chat`,
+      JSON.stringify(messages.slice(-50)) // 最新50件
+    );
+  } catch {}
+}
+
+/** チャット履歴を取得 */
+export function loadChatHistory(clinicId: string): { role: string; content: string }[] | null {
+  try {
+    const raw = localStorage.getItem(`${STORAGE_PREFIX}:${clinicId}:chat`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** オンボーディング完了フラグ */
+export function isOnboardingDone(clinicId: string): boolean {
+  try {
+    return !!localStorage.getItem(`${STORAGE_PREFIX}:${clinicId}:onboarded`);
+  } catch {
+    return false;
+  }
+}
+
+export function setOnboardingDone(clinicId: string): void {
+  try {
+    localStorage.setItem(`${STORAGE_PREFIX}:${clinicId}:onboarded`, "1");
+  } catch {}
+}
+
 /** 変更ログを取得 */
 export function getChangeLogs(clinicId: string): { field: string; label: string; at: string }[] {
   try {

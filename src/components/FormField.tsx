@@ -15,9 +15,16 @@ interface FormFieldProps {
   field: FieldDef;
   value: string;
   onChange: (value: string) => void;
+  /** 他フィールドの値を参照するため */
+  allValues?: Record<string, string>;
 }
 
-export default function FormField({ field, value, onChange }: FormFieldProps) {
+export default function FormField({ field, value, onChange, allValues }: FormFieldProps) {
+  // 動的プレースホルダー: {{clinic_name}} を実際の医院名に置換
+  const placeholder = field.placeholder?.replace(
+    /{{(\w+)}}/g,
+    (_, key) => allValues?.[key]?.trim() || "〇〇"
+  );
   return (
     <div className="space-y-2">
       <label
@@ -39,7 +46,7 @@ export default function FormField({ field, value, onChange }: FormFieldProps) {
         <input
           type="text"
           className="w-full"
-          placeholder={field.placeholder}
+          placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
@@ -94,7 +101,7 @@ export default function FormField({ field, value, onChange }: FormFieldProps) {
           )}
           <textarea
             className="w-full resize-y"
-            placeholder={field.placeholder}
+            placeholder={placeholder}
             rows={field.rows || 5}
             value={value}
             onChange={(e) => onChange(e.target.value)}
@@ -124,7 +131,7 @@ export default function FormField({ field, value, onChange }: FormFieldProps) {
         <input
           type="tel"
           className="w-full"
-          placeholder={field.placeholder}
+          placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
@@ -134,7 +141,7 @@ export default function FormField({ field, value, onChange }: FormFieldProps) {
         <input
           type="url"
           className="w-full"
-          placeholder={field.placeholder}
+          placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
@@ -176,7 +183,7 @@ export default function FormField({ field, value, onChange }: FormFieldProps) {
         <RepeaterInput
           value={value}
           onChange={onChange}
-          placeholder={field.placeholder}
+          placeholder={placeholder}
           defaultCount={field.defaultCount}
           suggestions={field.suggestions}
           enableAiSuggest={field.enableAiSuggest}
