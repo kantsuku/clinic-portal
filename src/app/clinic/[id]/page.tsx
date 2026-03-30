@@ -6,6 +6,7 @@ import { getClinicConfig } from "@/lib/clinics";
 import { loadClinicData, saveLastSection, getLastSection, isOnboardingDone, setOnboardingDone } from "@/lib/storage";
 import { DEMO_DATA } from "@/lib/seed-data";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { exportAsJson, exportAsText } from "@/lib/export";
 import Dashboard from "@/components/Dashboard";
 import SectionForm from "@/components/SectionForm";
 import AuthGate from "@/components/AuthGate";
@@ -14,6 +15,7 @@ import ToastContainer, { showToast } from "@/components/Toast";
 import PonkoChat from "@/components/PonkoChat";
 import AnalysisReport from "@/components/AnalysisReport";
 import Confetti from "@/components/Confetti";
+import HamburgerMenu from "@/components/HamburgerMenu";
 import Onboarding from "@/components/Onboarding";
 
 export default function ClinicPage({
@@ -170,6 +172,13 @@ export default function ClinicPage({
         )}
       </main>
 
+      <HamburgerMenu
+        clinicId={clinicId}
+        onOpenChat={() => setShowChat(true)}
+        onOpenAnalysis={() => setShowAnalysis(true)}
+        onExportText={() => exportAsText(clinicId, values)}
+        onExportJson={() => exportAsJson(clinicId, values)}
+      />
       <SaveIndicator lastSaved={lastSaved} isDirty={isDirty} />
       <ToastContainer />
       <Confetti trigger={confettiTrigger} />
