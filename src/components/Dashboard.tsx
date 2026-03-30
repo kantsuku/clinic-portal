@@ -1,6 +1,10 @@
 "use client";
 
-import { sections } from "@/lib/schema";
+import { useState, useMemo, useEffect } from "react";
+import { sections, steps } from "@/lib/schema";
+import { getPonkoMessage } from "@/lib/ponko-messages";
+import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";
+import PrimaryInfoModal from "./PrimaryInfoModal";
 
 interface DashboardProps {
   values: Record<string, string>;
@@ -8,6 +12,16 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ values, onSelectSection }: DashboardProps) {
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [messageSeed, setMessageSeed] = useState(() => Math.floor(Math.random() * 1000));
+
+  // 8秒ごとにセリフを自動切り替え
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMessageSeed((prev) => prev + 1);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, []);
   const sectionStats = sections.map((section) => {
     const filled = section.fields.filter(
       (f) => values[f.name]?.trim()
@@ -22,88 +36,328 @@ export default function Dashboard({ values, onSelectSection }: DashboardProps) {
   const overallPct =
     totalFields > 0 ? Math.round((totalFilled / totalFields) * 100) : 0;
 
+  // 各テキストフィールドを個別に分析して累計
+  const { primaryInfoScore, sectionPrimaryScores } = useMemo(() => {
+    let totalScore = 0;
+    let totalFields = 0;
+
+    const sectionScores = sections.map((section) => {
+      const textFields = section.fields.filter(
+        (f) => f.type === "textarea" || f.type === "repeater"
+      );
+      let sectionTotal = 0;
+      let sectionCount = 0;
+
+      for (const field of textFields) {
+        const val = values[field.name] || "";
+        if (val.trim().length < 10) continue;
+        const result = analyzePrimaryInfo(val);
+        sectionTotal += result.score;
+        sectionCount++;
+        totalScore += result.score;
+        totalFields++;
+      }
+
+      return {
+        section,
+        score: sectionCount > 0 ? Math.round(sectionTotal / sectionCount) : null,
+      };
+    });
+
+    return {
+      primaryInfoScore: totalFields > 0 ? Math.round(totalScore / totalFields) : 0,
+      sectionPrimaryScores: sectionScores,
+    };
+  }, [values]);
+
+  const primaryLabel = getScoreLabel(primaryInfoScore);
+
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold mb-2">Clinic Portal</h1>
-        <p className="text-gray-500 text-sm">
-          医院の情報を入力してください
+    <div className="max-w-lg mx-auto">
+      {/* Header with Ponko */}
+      <div className="text-center mb-6 pt-2">
+        <img
+          src="/ponko.png"
+          alt="ぽん子"
+          className="w-20 h-20 mx-auto mb-3 ponko-jump cursor-pointer"
+          onClick={() => setMessageSeed(Math.floor(Math.random() * 1000))}
+        />
+        <h1 className="text-[22px] font-medium tracking-tight mb-1" style={{ color: "var(--md-on-surface)" }}>
+          Clinic Portal <span className="font-normal text-sm" style={{ color: "var(--md-on-surface-variant)" }}>by Ponko</span>
+        </h1>
+        <div
+          className="inline-block mt-2 px-4 py-2.5 text-sm text-left max-w-xs cursor-pointer"
+          style={{
+            background: "var(--md-surface-container)",
+            borderRadius: "var(--md-shape-corner-lg)",
+            boxShadow: "var(--md-elevation-1)",
+            color: "var(--md-on-surface)",
+          }}
+          onClick={() => setMessageSeed(Math.floor(Math.random() * 1000))}
+        >
+          <p>{getPonkoMessage(overallPct, messageSeed)}</p>
+        </div>
+        <p
+          className="text-[10px] mt-1.5"
+          style={{ color: "var(--md-on-surface-variant)", opacity: 0.5 }}
+        >
+          タップでぽん子が別のことを言うよ
         </p>
       </div>
 
-      {/* 全体進捗 */}
-      <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+      {/* Overall progress card */}
+      <div
+        className="p-5 mb-6"
+        style={{
+          background: "var(--md-primary-container)",
+          borderRadius: "var(--md-shape-corner-xl)",
+        }}
+      >
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-gray-600">
+          <span className="text-sm font-medium" style={{ color: "var(--md-on-primary-container)" }}>
             全体の入力進捗
           </span>
-          <span className="text-2xl font-bold text-blue-600">
-            {overallPct}%
+          <span className="text-3xl font-bold" style={{ color: "var(--md-primary)" }}>
+            {overallPct}<span className="text-base font-medium">%</span>
           </span>
         </div>
-        <div className="bg-gray-200 rounded-full h-3">
+        <div
+          className="h-2 overflow-hidden"
+          style={{
+            background: "rgba(26,115,232,0.15)",
+            borderRadius: "100px",
+          }}
+        >
           <div
-            className="bg-blue-500 h-3 rounded-full transition-all duration-500"
-            style={{ width: `${overallPct}%` }}
+            className="h-full transition-all duration-500"
+            style={{
+              width: `${overallPct}%`,
+              background: "var(--md-primary)",
+              borderRadius: "100px",
+            }}
           />
         </div>
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs mt-2" style={{ color: "var(--md-on-primary-container)", opacity: 0.7 }}>
           {totalFilled} / {totalFields} 項目入力済み
         </p>
-      </div>
 
-      {/* セクション一覧 */}
-      <div className="space-y-3">
-        {sectionStats.map(({ section, filled, total, pct }) => (
-          <button
-            key={section.id}
-            onClick={() => onSelectSection(section.id)}
-            className="w-full bg-white rounded-xl shadow-sm border p-4 hover:shadow-md hover:border-blue-200 transition-all text-left group"
+        {/* 全体の一次情報スコア */}
+        {primaryInfoScore > 0 && (
+          <div
+            className="mt-3 p-2.5"
+            style={{
+              background: "rgba(255,255,255,0.5)",
+              borderRadius: "var(--md-shape-corner-md)",
+            }}
           >
-            <div className="flex items-center gap-4">
-              <span className="text-2xl group-hover:scale-110 transition-transform">
-                {section.icon}
-              </span>
-              <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2.5">
+              <img src="/ponko.png" alt="ぽん子" className="w-7 h-7 shrink-0" />
+              <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-sm">{section.title}</h3>
-                  <span className="text-xs text-gray-400">
-                    {filled}/{total}
+                  <span className="text-[11px] font-medium" style={{ color: primaryLabel.color }}>
+                    一次情報スコア
+                  </span>
+                  <span className="text-xs font-bold" style={{ color: primaryLabel.color }}>
+                    {primaryInfoScore}%
                   </span>
                 </div>
-                <div className="bg-gray-200 rounded-full h-1.5">
+                <div
+                  className="h-1.5 overflow-hidden"
+                  style={{ background: "rgba(0,0,0,0.08)", borderRadius: "100px" }}
+                >
                   <div
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      pct === 100
-                        ? "bg-green-500"
-                        : pct > 0
-                          ? "bg-blue-500"
-                          : "bg-gray-300"
-                    }`}
-                    style={{ width: `${pct}%` }}
+                    className="h-full transition-all duration-500"
+                    style={{
+                      width: `${primaryInfoScore}%`,
+                      background: primaryLabel.color,
+                      borderRadius: "100px",
+                    }}
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1 truncate">
-                  {section.description}
-                </p>
               </div>
-              <svg
-                className="w-5 h-5 text-gray-300 group-hover:text-blue-400 transition-colors shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
             </div>
+            <button
+              onClick={() => setShowInfoModal(true)}
+              className="w-full mt-2.5 py-2 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
+              style={{
+                background: "var(--md-primary)",
+                color: "var(--md-on-primary)",
+                borderRadius: "100px",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              <img src="/ponko.png" alt="" className="w-4 h-4" />
+              一次情報ってなに？
+            </button>
+          </div>
+        )}
+
+        {/* 未入力時でもボタンを表示 */}
+        {primaryInfoScore === 0 && totalFilled > 0 && (
+          <button
+            onClick={() => setShowInfoModal(true)}
+            className="w-full mt-3 py-2.5 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
+            style={{
+              background: "rgba(255,255,255,0.5)",
+              color: "var(--md-primary)",
+              borderRadius: "100px",
+              border: "1px solid rgba(26,115,232,0.3)",
+              cursor: "pointer",
+            }}
+          >
+            <img src="/ponko.png" alt="" className="w-4 h-4" />
+            一次情報ってなに？大事なので読んでね！
           </button>
-        ))}
+        )}
       </div>
+
+      {/* Info modal */}
+      <PrimaryInfoModal open={showInfoModal} onClose={() => setShowInfoModal(false)} />
+
+      {/* Section cards grouped by step */}
+      {steps.map((stepDef) => {
+        const stepSections = sectionStats.filter((s) => s.section.step === stepDef.step);
+        if (stepSections.length === 0) return null;
+
+        return (
+          <div key={stepDef.step} className="mb-6">
+            {/* Step header */}
+            <div className="flex items-center gap-3 mb-3">
+              <span
+                className="text-xs font-bold px-2.5 py-1"
+                style={{
+                  background: stepDef.step === 1 ? "var(--md-primary)" : "var(--md-secondary)",
+                  color: stepDef.step === 1 ? "var(--md-on-primary)" : "var(--md-on-secondary)",
+                  borderRadius: "100px",
+                }}
+              >
+                {stepDef.title}
+              </span>
+              <span className="text-xs" style={{ color: "var(--md-on-surface-variant)" }}>
+                {stepDef.description}
+              </span>
+            </div>
+
+            {/* Cards */}
+            <div className="space-y-2">
+              {stepSections.map(({ section, filled, total, pct }) => {
+                const sectionPrimary = sectionPrimaryScores.find((s) => s.section.id === section.id);
+                const sp = sectionPrimary?.score !== null && sectionPrimary?.score !== undefined
+                  ? getScoreLabel(sectionPrimary.score)
+                  : null;
+
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => onSelectSection(section.id)}
+                    className="w-full text-left md-state-layer"
+                    style={{
+                      background: "var(--md-surface-container)",
+                      borderRadius: "var(--md-shape-corner-lg)",
+                      boxShadow: "var(--md-elevation-1)",
+                      padding: "16px 20px",
+                      border: "none",
+                      cursor: "pointer",
+                      transition: "box-shadow 0.2s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--md-elevation-2)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--md-elevation-1)")}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-10 h-10 flex items-center justify-center text-xl shrink-0"
+                        style={{
+                          background: pct === 100 ? "var(--md-tertiary-container)" : "var(--md-secondary-container)",
+                          borderRadius: "var(--md-shape-corner-md)",
+                        }}
+                      >
+                        {section.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <h3 className="font-medium text-sm" style={{ color: "var(--md-on-surface)" }}>
+                            {section.title}
+                          </h3>
+                          <span
+                            className="text-xs px-2 py-0.5"
+                            style={{
+                              color: pct === 100 ? "var(--md-tertiary)" : "var(--md-on-surface-variant)",
+                              background: pct === 100 ? "var(--md-tertiary-container)" : "var(--md-surface-container-low)",
+                              borderRadius: "100px",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {filled}/{total}
+                          </span>
+                        </div>
+                        <div
+                          className="h-1 overflow-hidden"
+                          style={{ background: "var(--md-outline-variant)", borderRadius: "100px" }}
+                        >
+                          <div
+                            className="h-full transition-all duration-300"
+                            style={{
+                              width: `${pct}%`,
+                              background: pct === 100 ? "var(--md-tertiary)" : "var(--md-primary)",
+                              borderRadius: "100px",
+                            }}
+                          />
+                        </div>
+
+                        {sp && sectionPrimary?.score != null && (
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <img src="/ponko.png" alt="" className="w-3.5 h-3.5" />
+                            <span className="text-[10px]" style={{ color: "var(--md-on-surface-variant)" }}>
+                              一次情報
+                            </span>
+                            <div
+                              className="flex-1 h-1 overflow-hidden"
+                              style={{ background: "var(--md-outline-variant)", borderRadius: "100px" }}
+                            >
+                              <div
+                                className="h-full transition-all duration-300"
+                                style={{
+                                  width: `${sectionPrimary.score}%`,
+                                  background: sp.color,
+                                  borderRadius: "100px",
+                                }}
+                              />
+                            </div>
+                            <span className="text-[10px] font-bold" style={{ color: sp.color }}>
+                              {sectionPrimary.score}%
+                            </span>
+                          </div>
+                        )}
+
+                        {!sp && filled > 0 && (
+                          <p
+                            className="text-[10px] mt-1 flex items-center gap-1"
+                            style={{ color: "var(--md-on-surface-variant)" }}
+                            onClick={(e) => { e.stopPropagation(); setShowInfoModal(true); }}
+                          >
+                            <img src="/ponko.png" alt="" className="w-3.5 h-3.5" />
+                            一次情報を入れるともっと良くなりますよ！
+                          </p>
+                        )}
+                      </div>
+                      <svg
+                        className="w-5 h-5 shrink-0"
+                        style={{ color: "var(--md-on-surface-variant)" }}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
