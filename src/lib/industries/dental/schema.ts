@@ -726,6 +726,43 @@ export const sections: SectionDef[] = [
       },
     ],
   },
+  // ── 価格表・症例 ──────────────────────────────────────
+  {
+    id: "price-table",
+    title: "自費診療 料金表",
+    description: "自費診療の料金を教えてください！",
+    icon: "💰",
+    step: 2,
+    estimatedMinutes: 10,
+    fields: [
+      {
+        name: "price_table",
+        label: "料金表",
+        type: "price-table",
+        hint: "カテゴリごとに治療メニューと価格を入力してください！プリセットからサクッと追加できますよ！",
+        dnaSheet: "00_Clinic",
+        dnaField: "notes",
+      },
+    ],
+  },
+  {
+    id: "case-studies",
+    title: "症例紹介",
+    description: "先生の治療の実力が伝わる症例を紹介しましょう！",
+    icon: "📋",
+    step: 2,
+    estimatedMinutes: 15,
+    fields: [
+      {
+        name: "case_studies",
+        label: "症例",
+        type: "case-study",
+        hint: "「なぜこの治療にしたか」まで書けると、他の医院と圧倒的に差がつきますよ！",
+        dnaSheet: "04_Treatment_Policy",
+        dnaField: "content",
+      },
+    ],
+  },
 ];
 
 

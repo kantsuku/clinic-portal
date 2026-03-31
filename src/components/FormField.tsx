@@ -8,6 +8,8 @@ import RepeaterInput from "./RepeaterInput";
 import ChecklistInput from "./ChecklistInput";
 import ToneMannerInput from "./ToneMannerInput";
 import StaffRepeater from "./StaffRepeater";
+import PriceTableInput from "./PriceTableInput";
+import CaseStudyInput from "./CaseStudyInput";
 import PrimaryInfoMeter from "./PrimaryInfoMeter";
 import RewriteButton from "./RewriteButton";
 import { showToast } from "./Toast";
@@ -185,6 +187,14 @@ export default function FormField({ field, value, onChange, allValues }: FormFie
 
       {field.type === "staff-repeater" && (
         <StaffRepeater value={value} onChange={onChange} />
+      )}
+
+      {field.type === "price-table" && (
+        <PriceTableInput value={value} onChange={onChange} />
+      )}
+
+      {field.type === "case-study" && (
+        <CaseStudyInput value={value} onChange={onChange} />
       )}
 
       {field.type === "tone-manner" && field.toneCategories && (

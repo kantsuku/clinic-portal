@@ -21,7 +21,9 @@ export type FieldType =
   | "payment"
   | "checklist"
   | "tone-manner"
-  | "staff-repeater";
+  | "staff-repeater"
+  | "price-table"
+  | "case-study";
 
 export interface FieldDef {
   name: string;
