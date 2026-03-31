@@ -12,8 +12,6 @@ import SectionForm from "@/components/SectionForm";
 import AuthGate from "@/components/AuthGate";
 import SaveIndicator from "@/components/SaveIndicator";
 import ToastContainer, { showToast } from "@/components/Toast";
-import PonkoChat from "@/components/PonkoChat";
-import AnalysisReport from "@/components/AnalysisReport";
 import Confetti from "@/components/Confetti";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import Onboarding from "@/components/Onboarding";
@@ -36,8 +34,6 @@ export default function ClinicPage({
     if (clinicId === "demo") return { ...getDefaultValues(clinic?.industry), ...DEMO_DATA };
     return getDefaultValues(clinic?.industry);
   });
-  const [showChat, setShowChat] = useState(false);
-  const [showAnalysis, setShowAnalysis] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
   const [confettiTrigger, setConfettiTrigger] = useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = useState(false);
@@ -170,16 +166,12 @@ export default function ClinicPage({
             onSelectSection={handleSectionChange}
             clinicId={clinicId}
             industry={clinic?.industry}
-            onOpenChat={() => setShowChat(true)}
-            onOpenAnalysis={() => setShowAnalysis(true)}
           />
         )}
       </main>
 
       <HamburgerMenu
         clinicId={clinicId}
-        onOpenChat={() => setShowChat(true)}
-        onOpenAnalysis={() => setShowAnalysis(true)}
         onOpenPresets={() => setShowPresets(true)}
         onExportText={() => exportAsText(clinicId, values)}
         onExportJson={() => exportAsJson(clinicId, values)}
@@ -195,21 +187,6 @@ export default function ClinicPage({
           }}
         />
       )}
-      {showChat && (
-        <PonkoChat
-          values={values}
-          clinicId={clinicId}
-          onClose={() => setShowChat(false)}
-          onApplyToField={(fieldName, value) => {
-            setValues((prev) => ({ ...prev, [fieldName]: value }));
-          }}
-          onNavigateToSection={(sectionId) => {
-            setShowChat(false);
-            handleSectionChange(sectionId);
-          }}
-        />
-      )}
-      {showAnalysis && <AnalysisReport values={values} onClose={() => setShowAnalysis(false)} />}
       {showPresets && (
         <PresetModal
           onApply={(presetData) => setValues((prev) => ({ ...prev, ...presetData }))}
