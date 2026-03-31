@@ -37,6 +37,7 @@ export default function ClinicPage({
   });
   const [showPresets, setShowPresets] = useState(false);
   const [showMissionBuilder, setShowMissionBuilder] = useState(false);
+  const [showMission, setShowMission] = useState(false);
   const [confettiTrigger, setConfettiTrigger] = useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = useState(false);
   const [lastSectionName, setLastSectionName] = useState<string | null>(null);
@@ -153,7 +154,16 @@ export default function ClinicPage({
           </div>
         )}
 
-        {section ? (
+        {showMission ? (
+          <MissionBuilder
+            clinicId={clinicId}
+            onComplete={(result) => {
+              setValues((prev) => ({ ...prev, philosophy: result }));
+              setShowMission(false);
+            }}
+            onBack={() => setShowMission(false)}
+          />
+        ) : section ? (
           <SectionForm
             section={section}
             values={values}
@@ -175,7 +185,7 @@ export default function ClinicPage({
       <HamburgerMenu
         clinicId={clinicId}
         onOpenPresets={() => setShowPresets(true)}
-        onOpenMissionBuilder={() => setShowMissionBuilder(true)}
+        onOpenMissionBuilder={() => setShowMission(true)}
         onExportText={() => exportAsText(clinicId, values)}
         onExportJson={() => exportAsJson(clinicId, values)}
       />
@@ -194,15 +204,6 @@ export default function ClinicPage({
         <PresetModal
           onApply={(presetData) => setValues((prev) => ({ ...prev, ...presetData }))}
           onClose={() => setShowPresets(false)}
-        />
-      )}
-      {showMissionBuilder && (
-        <MissionBuilder
-          onComplete={({ ways }) => {
-            setValues((prev) => ({ ...prev, philosophy: ways }));
-            setShowMissionBuilder(false);
-          }}
-          onClose={() => setShowMissionBuilder(false)}
         />
       )}
     </AuthGate>

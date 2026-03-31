@@ -161,6 +161,21 @@ export function setOnboardingDone(clinicId: string): void {
   } catch {}
 }
 
+/** ミッションビルダーの入力を保存 */
+export function saveMissionDraft(clinicId: string, data: { mission: string; supplement: string; slogan: string; ways: string }): void {
+  try {
+    localStorage.setItem(`${STORAGE_PREFIX}:${clinicId}:mission`, JSON.stringify(data));
+  } catch {}
+}
+
+/** ミッションビルダーの入力を読み込み */
+export function loadMissionDraft(clinicId: string): { mission: string; supplement: string; slogan: string; ways: string } | null {
+  try {
+    const raw = localStorage.getItem(`${STORAGE_PREFIX}:${clinicId}:mission`);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 /** 変更ログを取得 */
 export function getChangeLogs(clinicId: string): { field: string; label: string; at: string }[] {
   try {
