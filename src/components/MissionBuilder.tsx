@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { saveMissionDraft, loadMissionDraft } from "@/lib/storage";
 import { MISSION_CATEGORIES, ALL_MISSION_QUESTIONS } from "@/lib/mission-questions";
+import MissionAboutModal from "./MissionAboutModal";
 
 interface MissionBuilderProps {
   clinicId: string;
@@ -110,6 +111,7 @@ export default function MissionBuilder({ clinicId, onComplete, onBack }: Mission
   const [editing, setEditing] = useState(false);
   const [editedText, setEditedText] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
+  const [showAbout, setShowAbout] = useState(false);
 
   useEffect(() => { saveMissionDraft(clinicId, answers as any); }, [answers, clinicId]);
 
@@ -173,9 +175,14 @@ export default function MissionBuilder({ clinicId, onComplete, onBack }: Mission
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-2" style={{ color: DK.accent, lineHeight: 1.1 }}>
             MISSION<br /><span style={{ fontWeight: 300 }}>WAY</span>
           </h1>
-          <p className="text-xs mt-4" style={{ color: DK.textSub }}>
+          <p className="text-xs mt-4 mb-5" style={{ color: DK.textSub }}>
             {ALL_MISSION_QUESTIONS.length} questions to define your identity
           </p>
+          <button onClick={() => setShowAbout(true)}
+            className="text-xs tracking-widest uppercase px-6 py-2.5"
+            style={{ color: DK.gold, background: "transparent", border: `1px solid ${DK.gold}`, borderRadius: 100, cursor: "pointer", fontWeight: 500, letterSpacing: "0.1em" }}>
+            Why MISSION WAY?
+          </button>
         </div>
 
         {/* Progress */}
@@ -365,6 +372,7 @@ export default function MissionBuilder({ clinicId, onComplete, onBack }: Mission
           </div>
         )}
       </div>
+      <MissionAboutModal open={showAbout} onClose={() => setShowAbout(false)} />
     </div>
   );
 }
