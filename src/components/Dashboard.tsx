@@ -284,6 +284,11 @@ export default function Dashboard({ values, onSelectSection, clinicId, onOpenCha
                         <div className="flex items-center justify-between mb-1.5">
                           <h3 className="font-medium text-sm" style={{ color: "var(--md-on-surface)" }}>
                             {section.title}
+                            {section.estimatedMinutes && pct < 100 && (
+                              <span className="text-[11px] font-normal ml-1.5" style={{ color: "var(--md-on-surface-variant)" }}>
+                                約{section.estimatedMinutes}分
+                              </span>
+                            )}
                           </h3>
                           <span
                             className="text-xs px-2 py-0.5"

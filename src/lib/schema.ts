@@ -52,6 +52,8 @@ export interface SectionDef {
   fields: FieldDef[];
   /** ステップ番号（1 or 2） */
   step: 1 | 2;
+  /** 推定所要時間（分） */
+  estimatedMinutes?: number;
 }
 
 export interface StepDef {
@@ -73,7 +75,7 @@ export const sections: SectionDef[] = [
     title: "トーン&マナー",
     description: "HPの文章のルールを最初に決めておきましょう！",
     icon: "🎨",
-    step: 1,
+    step: 1, estimatedMinutes: 3,
     fields: [
       {
         name: "tone_settings",
@@ -156,7 +158,7 @@ export const sections: SectionDef[] = [
     title: "基本情報",
     description: "まずは医院の基本情報からお願いします！",
     icon: "🏥",
-    step: 1,
+    step: 1, estimatedMinutes: 5,
     fields: [
       {
         name: "clinic_name",
@@ -245,7 +247,7 @@ export const sections: SectionDef[] = [
     title: "院長プロフィール",
     description: "院長先生のこと、教えてください！",
     icon: "👨‍⚕️",
-    step: 1,
+    step: 1, estimatedMinutes: 5,
     fields: [
       {
         name: "director_name",
@@ -298,7 +300,7 @@ export const sections: SectionDef[] = [
     title: "原点・ルーツ",
     description: "先生が歯科医師になるまでの物語を教えてください！",
     icon: "🌱",
-    step: 2,
+    step: 2, estimatedMinutes: 10,
     fields: [
       {
         name: "motivation",
@@ -363,7 +365,7 @@ export const sections: SectionDef[] = [
     title: "理念・診療哲学",
     description: "先生の診療に対する考え方を教えてください！",
     icon: "💡",
-    step: 1,
+    step: 1, estimatedMinutes: 10,
     fields: [
       {
         name: "philosophy",
@@ -426,7 +428,7 @@ export const sections: SectionDef[] = [
     title: "エピソード・人柄",
     description: "先生の人柄が伝わるエピソードを教えてください！",
     icon: "📖",
-    step: 2,
+    step: 2, estimatedMinutes: 15,
     fields: [
       {
         name: "memorable_episode",
@@ -519,7 +521,7 @@ export const sections: SectionDef[] = [
     title: "医院の特徴・設備",
     description: "先生の医院のアピールポイント、たくさん教えてください！",
     icon: "⭐",
-    step: 1,
+    step: 1, estimatedMinutes: 10,
     fields: [
       {
         name: "clinic_features",
@@ -584,7 +586,7 @@ export const sections: SectionDef[] = [
     title: "診療内容",
     description: "対応している診療メニューを教えてください！こだわりがあるものはぜひ詳しく！",
     icon: "🦷",
-    step: 2,
+    step: 2, estimatedMinutes: 10,
     fields: [
       {
         name: "treatment_checklist",
@@ -696,7 +698,7 @@ export const sections: SectionDef[] = [
     title: "設備・院内環境",
     description: "導入している設備や院内の環境を教えてください！",
     icon: "🔬",
-    step: 2,
+    step: 2, estimatedMinutes: 5,
     fields: [
       {
         name: "equipment_checklist",

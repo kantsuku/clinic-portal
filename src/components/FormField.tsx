@@ -10,6 +10,7 @@ import ToneMannerInput from "./ToneMannerInput";
 import StaffRepeater from "./StaffRepeater";
 import PrimaryInfoMeter from "./PrimaryInfoMeter";
 import RewriteButton from "./RewriteButton";
+import { showToast } from "./Toast";
 
 interface FormFieldProps {
   field: FieldDef;
@@ -27,15 +28,38 @@ export default function FormField({ field, value, onChange, allValues }: FormFie
   );
   return (
     <div className="space-y-2">
-      <label
-        className="block text-sm font-medium"
-        style={{ color: "var(--md-on-surface)" }}
-      >
-        {field.label}
-        {field.required && (
-          <span style={{ color: "var(--md-error)" }} className="ml-1">*</span>
+      <div className="flex items-center justify-between">
+        <label
+          className="block text-sm font-medium"
+          style={{ color: "var(--md-on-surface)" }}
+        >
+          {field.label}
+          {field.required && (
+            <span style={{ color: "var(--md-error)" }} className="ml-1">*</span>
+          )}
+        </label>
+        {value?.trim() && (
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(value);
+              showToast("コピーしました");
+            }}
+            className="text-[11px] px-2 py-1"
+            style={{
+              color: "var(--md-on-surface-variant)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+            }}
+            aria-label="コピー"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
         )}
-      </label>
+      </div>
       {field.hint && (
         <p className="text-xs" style={{ color: "var(--md-on-surface-variant)" }}>
           {field.hint}
