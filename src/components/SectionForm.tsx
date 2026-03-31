@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type { SectionDef } from "@/lib/schema";
-import { sections } from "@/lib/schema";
+import { getSections } from "@/lib/schema";
+import type { IndustryType } from "@/lib/clinics";
 import FormField from "./FormField";
 import PrimaryInfoTips from "./PrimaryInfoTips";
 import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";
@@ -14,6 +15,7 @@ interface SectionFormProps {
   onChange: (fieldName: string, value: string) => void;
   onBack: () => void;
   onNavigate?: (sectionId: string) => void;
+  industry?: IndustryType;
 }
 
 export default function SectionForm({
@@ -22,6 +24,7 @@ export default function SectionForm({
   onChange,
   onBack,
   onNavigate,
+  industry,
 }: SectionFormProps) {
   const [guideMode, setGuideMode] = useState(false);
 
@@ -209,9 +212,10 @@ export default function SectionForm({
 
       {/* Section navigation */}
       {onNavigate && (() => {
-        const currentIdx = sections.findIndex((s) => s.id === section.id);
-        const prevSection = currentIdx > 0 ? sections[currentIdx - 1] : null;
-        const nextSection = currentIdx < sections.length - 1 ? sections[currentIdx + 1] : null;
+        const allSections = getSections(industry);
+        const currentIdx = allSections.findIndex((s) => s.id === section.id);
+        const prevSection = currentIdx > 0 ? allSections[currentIdx - 1] : null;
+        const nextSection = currentIdx < allSections.length - 1 ? allSections[currentIdx + 1] : null;
 
         return (
           <div className="flex gap-2 mt-6">

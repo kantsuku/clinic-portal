@@ -3,10 +3,18 @@
  * localStorage ベースで動的に追加・編集可能
  */
 
+export type IndustryType = "dental" | "corporate";
+
+export const INDUSTRY_LABELS: Record<IndustryType, string> = {
+  dental: "歯科医院",
+  corporate: "一般企業",
+};
+
 export interface ClinicConfig {
   id: string;
   name: string;
   password: string;
+  industry: IndustryType;
   createdAt?: string;
 }
 
@@ -14,7 +22,8 @@ const STORAGE_KEY = "clinic-portal:clinics";
 
 /** デフォルトクリニック */
 const DEFAULT_CLINICS: ClinicConfig[] = [
-  { id: "demo", name: "デモ医院", password: "" },
+  { id: "demo", name: "デモ医院", password: "", industry: "dental" },
+  { id: "demo-corp", name: "デモ株式会社", password: "", industry: "corporate" },
 ];
 
 /** クリニック一覧を取得 */

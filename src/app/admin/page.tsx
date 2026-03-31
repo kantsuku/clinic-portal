@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { getAllClinics, addClinic, deleteClinic, type ClinicConfig } from "@/lib/clinics";
+import { getAllClinics, addClinic, deleteClinic, INDUSTRY_LABELS, type ClinicConfig, type IndustryType } from "@/lib/clinics";
 import { loadClinicData } from "@/lib/storage";
-import { sections } from "@/lib/schema";
+import { getSections } from "@/lib/schema";
 import { analyzePrimaryInfo } from "@/lib/primary-info-analyzer";
 import { exportAsText, exportAsJson } from "@/lib/export";
 
@@ -20,7 +20,8 @@ interface ClinicStats {
 function getClinicStats(clinic: ClinicConfig): ClinicStats {
   const saved = loadClinicData(clinic.id);
   const data = saved?.data || {};
-  const allFields = sections.flatMap((s) => s.fields);
+  const industrySections = getSections(clinic.industry);
+  const allFields = industrySections.flatMap((s) => s.fields);
   const filled = allFields.filter((f) => data[f.name]?.trim()).length;
   const pct = allFields.length > 0 ? Math.round((filled / allFields.length) * 100) : 0;
 
@@ -36,7 +37,7 @@ function getClinicStats(clinic: ClinicConfig): ClinicStats {
   const primaryScore = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0;
 
   // 未入力セクション
-  const emptySections = sections
+  const emptySections = industrySections
     .filter((s) => s.fields.every((f) => !data[f.name]?.trim()))
     .map((s) => `${s.icon} ${s.title}`);
 
@@ -62,6 +63,7 @@ export default function AdminPage() {
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newIndustry, setNewIndustry] = useState<IndustryType>("dental");
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -81,7 +83,7 @@ export default function AdminPage() {
     const id = newId.trim().replace(/\s+/g, "_").toUpperCase();
     if (!id || !newName.trim()) { setError("IDと医院名は必須です"); return; }
     try {
-      addClinic({ id, name: newName.trim(), password: newPassword });
+      addClinic({ id, name: newName.trim(), password: newPassword, industry: newIndustry });
       setClinics(getAllClinics());
       setNewId(""); setNewName(""); setNewPassword(""); setShowForm(false);
     } catch (e) { setError(e instanceof Error ? e.message : "追加に失敗しました"); }
@@ -149,7 +151,12 @@ export default function AdminPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="font-medium text-sm truncate">{clinic.name}</p>
+                    <p className="font-medium text-sm truncate">
+                    {clinic.name}
+                    <span className="text-[11px] font-normal ml-1.5 px-1.5 py-0.5" style={{ background: "var(--md-secondary-container)", color: "var(--md-on-secondary-container)", borderRadius: "100px" }}>
+                      {INDUSTRY_LABELS[clinic.industry || "dental"]}
+                    </span>
+                  </p>
                     <span className="text-xs font-bold ml-2" style={{ color: progressPct === 100 ? "var(--md-tertiary)" : "var(--md-primary)" }}>
                       {progressPct}%
                     </span>
@@ -204,7 +211,7 @@ export default function AdminPage() {
                 <div>
                   <p className="text-xs font-medium mb-1.5" style={{ color: "var(--md-on-surface-variant)" }}>セクション別進捗</p>
                   <div className="space-y-1">
-                    {sections.map((sec) => {
+                    {getSections(clinic.industry).map((sec) => {
                       const saved = loadClinicData(clinic.id);
                       const data = saved?.data || {};
                       const secFilled = sec.fields.filter((f) => data[f.name]?.trim()).length;
@@ -262,6 +269,21 @@ export default function AdminPage() {
             <div>
               <label className="text-xs font-medium block mb-1" style={{ color: "var(--md-on-surface-variant)" }}>医院名</label>
               <input type="text" className="w-full" placeholder="例：けやき歯科クリニック" value={newName} onChange={(e) => setNewName(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium block mb-1" style={{ color: "var(--md-on-surface-variant)" }}>業種</label>
+              <div className="flex gap-2">
+                {(Object.entries(INDUSTRY_LABELS) as [IndustryType, string][]).map(([key, label]) => (
+                  <button key={key} type="button" onClick={() => setNewIndustry(key)}
+                    className="text-xs font-medium px-4 py-2 flex-1"
+                    style={{
+                      background: newIndustry === key ? "var(--md-primary)" : "var(--md-surface-container-low)",
+                      color: newIndustry === key ? "var(--md-on-primary)" : "var(--md-on-surface-variant)",
+                      borderRadius: "100px", border: newIndustry === key ? "none" : "1px solid var(--md-outline-variant)", cursor: "pointer",
+                    }}
+                  >{label}</button>
+                ))}
+              </div>
             </div>
             <div>
               <label className="text-xs font-medium block mb-1" style={{ color: "var(--md-on-surface-variant)" }}>パスワード（空欄ならなし）</label>

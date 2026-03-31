@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo, use } from "react";
-import { sections, getSectionById, getDefaultValues } from "@/lib/schema";
+import { getSections, getSteps, getSectionById, getDefaultValues } from "@/lib/schema";
 import { getClinicConfig } from "@/lib/clinics";
 import { loadClinicData, saveLastSection, getLastSection, isOnboardingDone, setOnboardingDone } from "@/lib/storage";
 import { DEMO_DATA } from "@/lib/seed-data";
@@ -29,12 +29,12 @@ export default function ClinicPage({
 
   const [currentSection, setCurrentSection] = useState<string | null>(null);
   const [values, setValues] = useState<Record<string, string>>(() => {
-    if (typeof window === "undefined") return getDefaultValues();
+    if (typeof window === "undefined") return getDefaultValues(clinic?.industry);
     const saved = loadClinicData(clinicId);
-    if (saved) return { ...getDefaultValues(), ...saved.data };
+    if (saved) return { ...getDefaultValues(clinic?.industry), ...saved.data };
     // デモ医院はシードデータを初期表示
-    if (clinicId === "demo") return { ...getDefaultValues(), ...DEMO_DATA };
-    return getDefaultValues();
+    if (clinicId === "demo") return { ...getDefaultValues(clinic?.industry), ...DEMO_DATA };
+    return getDefaultValues(clinic?.industry);
   });
   const [showChat, setShowChat] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -77,7 +77,7 @@ export default function ClinicPage({
   // セクション完了検知 → 紙吹雪
   const prevFilledRef = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const s of sections) {
+    for (const s of getSections(clinic?.industry)) {
       counts[s.id] = s.fields.filter((f) => values[f.name]?.trim()).length;
     }
     return counts;
@@ -162,12 +162,14 @@ export default function ClinicPage({
             onChange={handleFieldChange}
             onBack={() => handleSectionChange(null)}
             onNavigate={handleSectionChange}
+            industry={clinic?.industry}
           />
         ) : (
           <Dashboard
             values={values}
             onSelectSection={handleSectionChange}
             clinicId={clinicId}
+            industry={clinic?.industry}
             onOpenChat={() => setShowChat(true)}
             onOpenAnalysis={() => setShowAnalysis(true)}
           />

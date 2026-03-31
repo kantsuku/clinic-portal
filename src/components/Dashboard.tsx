@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { sections, steps } from "@/lib/schema";
+import { getSections, getSteps, type SectionDef, type StepDef } from "@/lib/schema";
+import type { IndustryType } from "@/lib/clinics";
 import { getPonkoMessage } from "@/lib/ponko-messages";
 import { exportAsJson, exportAsText } from "@/lib/export";
 import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";
@@ -11,11 +12,14 @@ interface DashboardProps {
   values: Record<string, string>;
   onSelectSection: (sectionId: string) => void;
   clinicId?: string;
+  industry?: IndustryType;
   onOpenChat?: () => void;
   onOpenAnalysis?: () => void;
 }
 
-export default function Dashboard({ values, onSelectSection, clinicId, onOpenChat, onOpenAnalysis }: DashboardProps) {
+export default function Dashboard({ values, onSelectSection, clinicId, industry, onOpenChat, onOpenAnalysis }: DashboardProps) {
+  const sections = getSections(industry);
+  const steps = getSteps(industry);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [messageSeed, setMessageSeed] = useState(() => Math.floor(Math.random() * 1000));
 
