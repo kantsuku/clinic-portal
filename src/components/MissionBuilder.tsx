@@ -45,7 +45,62 @@ export default function MissionBuilder({ clinicId, onComplete, onBack }: Mission
     const saved = loadMissionDraft(clinicId);
     const initial: Record<string, string | string[]> = {};
     for (const q of ALL_MISSION_QUESTIONS) initial[q.key] = q.type === "multi" ? [] : "";
-    if (saved) return { ...initial, ...saved };
+    if (saved) {
+      const merged = { ...initial, ...saved };
+      // 空でなければ復元
+      const hasData = Object.values(merged).some((v) => Array.isArray(v) ? v.length > 0 : typeof v === "string" && v.trim());
+      if (hasData) return merged;
+    }
+    // デモ用サンプルデータ
+    if (clinicId === "demo") return {
+      ...initial,
+      p_personality: "職人気質",
+      p_strength: "説明力",
+      p_hobby: "料理（特にパスタ）。細かい作業が好きなのは歯科と通じるかも",
+      p_role_model: "大学院時代の山田教授。「歯周病は全身の健康に関わる。だから予防が大事だ」と繰り返し教わった",
+      o_why_dentist: "小学生の頃に転んで前歯を折った。担当の先生が「大丈夫、きれいに治るからね」と笑顔で言ってくれて、あの温かさが忘れられなかった",
+      o_opening_type: "新規開業",
+      o_opening_reason: "勤務先では説明に十分な時間が取れなかった。自分の医院なら1人30分のカウンセリングができると確信した",
+      o_regret: "勤務医時代、説明不足のまま患者さんが不安そうに治療を受けていたこと。あの表情が忘れられない",
+      o_joy: "歯医者が怖くて5年通えなかった患者さんが、うちに来てから笑顔で通えるようになった",
+      o_prev_frustration: "カウンセリングに時間をかけたかったが、勤務先の枠組みでは15分が限界だった",
+      a_local_love: "縁があって選んだ",
+      a_area_role: "子育て世代が安心して通える歯医者。平日忙しい人も土曜に来られるように",
+      a_community: ["学校歯科"],
+      t_main_age: ["20-30代", "40-50代"],
+      t_main_concern: ["虫歯", "歯周病", "メンテナンス"],
+      t_ideal_patient: "仕事が忙しくて通院を後回しにしてきたけど、「そろそろちゃんとしたい」と思って来てくれた30代の会社員",
+      t_relationship: "頼れる専門家",
+      t_not_for: "「安くて早ければいい」という方。うちは時間をかけてでも説明を大切にするので",
+      s_priority: "歯の保存",
+      s_approach: "予防重視",
+      s_counseling: "じっくり時間をかける",
+      s_tech_stance: "実績が出てから導入",
+      s_difference: "全患者に30分のカウンセリング枠を確保していること。モニターで検査結果を見せながら説明する",
+      v_most_important: "患者さんが納得してから治療を始めること。時間がかかっても説明を省くことは絶対にしない",
+      v_quality_std: "マイクロスコープを使った精密な根管治療。見えない部分こそ手を抜かない",
+      v_unique_value: ["安心感", "教育・啓発"],
+      v_insurance_vs_self: "患者に合わせて使い分け",
+      n_never_patient: "説明なしに治療を始めること。急いでいても必ず選択肢を提示する",
+      n_never_profit: "不要な自費治療を勧めること。「経過観察でOK」なら正直にそう伝える",
+      n_never_others: "ネット広告で煽るような集患",
+      n_dilemma: "とことん話し合う",
+      vi_5year: "この地域で「歯のことならさくら歯科」と言われる存在になりたい",
+      vi_10year: "後進の育成にも関わりたい。自分が恩師から学んだことを次の世代に伝えたい",
+      vi_success: "患者さんの子どもが大人になって「子どもの頃から通ってるんだよね」と言ってくれたら",
+      vi_legacy: "地域の健康文化",
+      e_hardest: "コロナ禍で患者数が半減した時期。スタッフと「来てくれる人に最高の対応をしよう」と決めて乗り越えた",
+      e_tension: "初診のカウンセリング。第一印象で信頼関係が決まるから",
+      e_good_day: "患者さんが安心した顔で帰っていった日",
+      e_motivation: "患者の笑顔",
+      tm_message: "患者さんの名前を覚えること。名前で呼ばれるだけで安心感が全然違う",
+      tm_hire_priority: "人柄・素直さ",
+      tm_culture: "家族のような温かさ",
+      tm_growth: "積極的に教える",
+      c_first_impression: "「ここは時間をかけて説明してくれるんだな」と思ってもらいたい",
+      c_explain_style: "図や写真で視覚的に",
+      c_bad_news: "選択肢と一緒に提示して",
+    };
     return initial;
   });
   const [result, setResult] = useState<GeneratedResult | null>(null);
