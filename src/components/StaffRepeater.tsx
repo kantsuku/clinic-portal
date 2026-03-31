@@ -10,6 +10,7 @@ interface StaffRepeaterProps {
 interface StaffMember {
   name: string;
   job_type: string;
+  position_title: string;
   career: string;
   qualifications: string;
   strength: string;
@@ -28,6 +29,7 @@ const JOB_TYPES = [
 const EMPTY_STAFF: StaffMember = {
   name: "",
   job_type: "",
+  position_title: "",
   career: "",
   qualifications: "",
   strength: "",
@@ -107,7 +109,7 @@ export default function StaffRepeater({ value, onChange }: StaffRepeaterProps) {
                 {member.name || "未入力"}
               </p>
               <p className="text-[11px] truncate" style={{ color: "var(--md-on-surface-variant)" }}>
-                {member.job_type || "職種未選択"}
+                {[member.position_title, member.job_type].filter(Boolean).join(" / ") || "職種未選択"}
               </p>
             </div>
             <svg
@@ -135,6 +137,18 @@ export default function StaffRepeater({ value, onChange }: StaffRepeaterProps) {
                   placeholder="例：佐藤 花子"
                   value={member.name}
                   onChange={(e) => updateStaff(index, "name", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium block mb-1" style={{ color: "var(--md-on-surface-variant)" }}>
+                  肩書き
+                </label>
+                <input
+                  type="text"
+                  className="w-full"
+                  placeholder="例：チーフ衛生士、副院長、受付リーダー"
+                  value={member.position_title}
+                  onChange={(e) => updateStaff(index, "position_title", e.target.value)}
                 />
               </div>
               <div>
