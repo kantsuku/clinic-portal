@@ -17,7 +17,6 @@ import AnalysisReport from "@/components/AnalysisReport";
 import Confetti from "@/components/Confetti";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import Onboarding from "@/components/Onboarding";
-import HpDraftModal from "@/components/HpDraftModal";
 import PresetModal from "@/components/PresetModal";
 
 export default function ClinicPage({
@@ -39,7 +38,6 @@ export default function ClinicPage({
   });
   const [showChat, setShowChat] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const [showHpDraft, setShowHpDraft] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
   const [confettiTrigger, setConfettiTrigger] = useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = useState(false);
@@ -180,7 +178,6 @@ export default function ClinicPage({
         clinicId={clinicId}
         onOpenChat={() => setShowChat(true)}
         onOpenAnalysis={() => setShowAnalysis(true)}
-        onOpenHpDraft={() => setShowHpDraft(true)}
         onOpenPresets={() => setShowPresets(true)}
         onExportText={() => exportAsText(clinicId, values)}
         onExportJson={() => exportAsJson(clinicId, values)}
@@ -211,7 +208,6 @@ export default function ClinicPage({
         />
       )}
       {showAnalysis && <AnalysisReport values={values} onClose={() => setShowAnalysis(false)} />}
-      {showHpDraft && <HpDraftModal values={values} onClose={() => setShowHpDraft(false)} />}
       {showPresets && (
         <PresetModal
           onApply={(presetData) => setValues((prev) => ({ ...prev, ...presetData }))}
