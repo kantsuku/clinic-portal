@@ -124,7 +124,7 @@ export default function ClinicPage({
 
   return (
     <AuthGate clinic={clinic}>
-      <main className="px-4 py-8 sm:py-12 pb-20">
+      <main className={showMission ? "pb-20" : "px-4 py-8 sm:py-12 pb-20"} style={showMission ? { background: "#0a0a0a" } : undefined}>
         {/* 途中復帰バナー */}
         {showWelcomeBack && !currentSection && lastSectionName && (
           <div

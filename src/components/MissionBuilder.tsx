@@ -158,7 +158,7 @@ export default function MissionBuilder({ clinicId, onComplete, onBack }: Mission
   function handleComplete() { onComplete(editing ? editedText : formatPattern(result!.patterns[selectedPattern])); }
 
   return (
-    <div style={{ background: DK.bg, minHeight: "100vh", margin: "-32px -16px", padding: "32px 16px" }}>
+    <div style={{ background: DK.bg, minHeight: "100vh" }}>
       <div className="max-w-lg mx-auto">
         {/* Back */}
         <button onClick={onBack} className="mb-8 text-xs flex items-center gap-1 py-2 tracking-widest uppercase"
