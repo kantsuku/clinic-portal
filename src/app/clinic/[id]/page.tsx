@@ -15,6 +15,7 @@ import ToastContainer, { showToast } from "@/components/Toast";
 import Confetti from "@/components/Confetti";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import Onboarding from "@/components/Onboarding";
+import MissionBuilder from "@/components/MissionBuilder";
 import PresetModal from "@/components/PresetModal";
 
 export default function ClinicPage({
@@ -35,6 +36,7 @@ export default function ClinicPage({
     return getDefaultValues(clinic?.industry);
   });
   const [showPresets, setShowPresets] = useState(false);
+  const [showMissionBuilder, setShowMissionBuilder] = useState(false);
   const [confettiTrigger, setConfettiTrigger] = useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = useState(false);
   const [lastSectionName, setLastSectionName] = useState<string | null>(null);
@@ -173,6 +175,7 @@ export default function ClinicPage({
       <HamburgerMenu
         clinicId={clinicId}
         onOpenPresets={() => setShowPresets(true)}
+        onOpenMissionBuilder={() => setShowMissionBuilder(true)}
         onExportText={() => exportAsText(clinicId, values)}
         onExportJson={() => exportAsJson(clinicId, values)}
       />
@@ -191,6 +194,15 @@ export default function ClinicPage({
         <PresetModal
           onApply={(presetData) => setValues((prev) => ({ ...prev, ...presetData }))}
           onClose={() => setShowPresets(false)}
+        />
+      )}
+      {showMissionBuilder && (
+        <MissionBuilder
+          onComplete={({ ways }) => {
+            setValues((prev) => ({ ...prev, philosophy: ways }));
+            setShowMissionBuilder(false);
+          }}
+          onClose={() => setShowMissionBuilder(false)}
         />
       )}
     </AuthGate>
