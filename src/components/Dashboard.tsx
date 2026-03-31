@@ -4,18 +4,17 @@ import { useState, useMemo, useEffect } from "react";
 import { getSections, getSteps, type SectionDef, type StepDef } from "@/lib/schema";
 import type { IndustryType } from "@/lib/clinics";
 import { getPonkoMessage } from "@/lib/ponko-messages";
-import { exportAsJson, exportAsText } from "@/lib/export";
+
 import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";
 import PrimaryInfoModal from "./PrimaryInfoModal";
 
 interface DashboardProps {
   values: Record<string, string>;
   onSelectSection: (sectionId: string) => void;
-  clinicId?: string;
   industry?: IndustryType;
 }
 
-export default function Dashboard({ values, onSelectSection, clinicId, industry }: DashboardProps) {
+export default function Dashboard({ values, onSelectSection, industry }: DashboardProps) {
   const sections = getSections(industry);
   const steps = getSteps(industry);
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -372,55 +371,6 @@ export default function Dashboard({ values, onSelectSection, clinicId, industry 
         );
       })}
 
-      {/* Tools */}
-      {totalFilled > 0 && clinicId && (
-        <div
-          className="mt-6 p-4"
-          style={{
-            background: "var(--md-surface-container)",
-            borderRadius: "var(--md-shape-corner-lg)",
-            boxShadow: "var(--md-elevation-1)",
-          }}
-        >
-          <p className="text-xs font-medium mb-3" style={{ color: "var(--md-on-surface-variant)" }}>
-            ツール
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => exportAsText(clinicId, values)}
-              className="text-xs font-medium px-3 py-2 flex items-center gap-1.5"
-              style={{
-                background: "var(--md-surface-container-low)",
-                color: "var(--md-on-surface)",
-                borderRadius: "100px",
-                border: "1px solid var(--md-outline-variant)",
-                cursor: "pointer",
-              }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              テキスト出力
-            </button>
-            <button
-              onClick={() => exportAsJson(clinicId, values)}
-              className="text-xs font-medium px-3 py-2 flex items-center gap-1.5"
-              style={{
-                background: "var(--md-surface-container-low)",
-                color: "var(--md-on-surface)",
-                borderRadius: "100px",
-                border: "1px solid var(--md-outline-variant)",
-                cursor: "pointer",
-              }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              JSON出力
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

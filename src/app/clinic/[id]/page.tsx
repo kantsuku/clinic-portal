@@ -176,7 +176,6 @@ export default function ClinicPage({
           <Dashboard
             values={values}
             onSelectSection={handleSectionChange}
-            clinicId={clinicId}
             industry={clinic?.industry}
           />
         )}
