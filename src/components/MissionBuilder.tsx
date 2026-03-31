@@ -181,7 +181,7 @@ export default function MissionBuilder({ clinicId, onComplete, onBack }: Mission
           <button onClick={() => setShowAbout(true)}
             className="text-xs tracking-widest uppercase px-6 py-2.5"
             style={{ color: DK.gold, background: "transparent", border: `1px solid ${DK.gold}`, borderRadius: 100, cursor: "pointer", fontWeight: 500, letterSpacing: "0.1em" }}>
-            Why MISSION WAY?
+            理念の考え方
           </button>
         </div>
 
