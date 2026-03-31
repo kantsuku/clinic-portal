@@ -50,12 +50,12 @@ export interface SectionDef {
   description: string;
   icon: string;
   fields: FieldDef[];
-  step: 1 | 2;
+  step: 0 | 1 | 2;
   estimatedMinutes?: number;
 }
 
 export interface StepDef {
-  step: 1 | 2;
+  step: 0 | 1 | 2;
   title: string;
   description: string;
 }

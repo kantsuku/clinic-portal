@@ -4,6 +4,7 @@
 import type { SectionDef, StepDef } from "../../schema";
 
 export const corporateSteps: StepDef[] = [
+  { step: 0, title: "はじめに", description: "Webサイトの文章ルールを先に決めておきましょう" },
   { step: 1, title: "ステップ1", description: "まずはここから！会社の基本情報と理念を固めましょう" },
   { step: 2, title: "ステップ2", description: "深掘りタイム！ストーリーと詳細情報を聞かせてください" },
 ];
@@ -14,7 +15,7 @@ export const corporateSections: SectionDef[] = [
     title: "トーン&マナー",
     description: "Webサイトの文章ルールを最初に決めましょう！",
     icon: "🎨",
-    step: 1,
+    step: 0,
     estimatedMinutes: 3,
     fields: [
       {

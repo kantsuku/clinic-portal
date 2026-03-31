@@ -4,6 +4,7 @@
 import type { SectionDef, StepDef } from "../../schema";
 
 export const dentalSteps: StepDef[] = [
+  { step: 0, title: "はじめに", description: "HPの文章ルールを先に決めておきましょう" },
   { step: 1, title: "ステップ1", description: "まずはここから！医院の基本情報と方針を固めましょう" },
   { step: 2, title: "ステップ2", description: "深掘りタイム！先生のエピソードと詳細情報を聞かせてください" },
 ];
@@ -16,7 +17,7 @@ export const sections: SectionDef[] = [
     title: "トーン&マナー",
     description: "HPの文章のルールを最初に決めておきましょう！",
     icon: "🎨",
-    step: 1, estimatedMinutes: 3,
+    step: 0, estimatedMinutes: 3,
     fields: [
       {
         name: "tone_settings",

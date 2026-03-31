@@ -237,8 +237,8 @@ export default function Dashboard({ values, onSelectSection, clinicId, industry,
               <span
                 className="text-xs font-bold px-2.5 py-1"
                 style={{
-                  background: stepDef.step === 1 ? "var(--md-primary)" : "var(--md-secondary)",
-                  color: stepDef.step === 1 ? "var(--md-on-primary)" : "var(--md-on-secondary)",
+                  background: stepDef.step === 0 ? "var(--md-on-surface-variant)" : stepDef.step === 1 ? "var(--md-primary)" : "var(--md-secondary)",
+                  color: "var(--md-on-primary)",
                   borderRadius: "100px",
                 }}
               >
