@@ -9,6 +9,8 @@ interface HamburgerMenuProps {
   onOpenPresets?: () => void;
   onExportText?: () => void;
   onExportJson?: () => void;
+  /** 管理者モード（出力系ボタンを表示） */
+  isAdmin?: boolean;
 }
 
 export default function HamburgerMenu({
@@ -18,6 +20,7 @@ export default function HamburgerMenu({
   onOpenPresets,
   onExportText,
   onExportJson,
+  isAdmin = false,
 }: HamburgerMenuProps) {
   const [open, setOpen] = useState(false);
 
@@ -127,6 +130,8 @@ export default function HamburgerMenu({
               />
             )}
 
+            {isAdmin && (
+            <>
             <div className="mx-4 my-1" style={{ borderTop: "1px solid var(--md-outline-variant)" }} />
 
             {onExportText && (
@@ -152,6 +157,9 @@ export default function HamburgerMenu({
               />
             )}
 
+            </>
+            )}
+
             <div className="mx-4 my-1" style={{ borderTop: "1px solid var(--md-outline-variant)" }} />
 
             <MenuItem
@@ -164,7 +172,7 @@ export default function HamburgerMenu({
               href="/"
             />
 
-            {clinicId && (
+            {clinicId && isAdmin && (
               <MenuItem
                 icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
