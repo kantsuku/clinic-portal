@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { getSections, getSteps, type SectionDef, type StepDef } from "@/lib/schema";
-import type { IndustryType } from "@/lib/clinics";
+type IndustryType = "dental" | "corporate";
 import { getPonkoMessage } from "@/lib/ponko-messages";
 
 import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";

@@ -1,32 +1,33 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { verifyPassword, type ClinicConfig } from "@/lib/clinics";
-import { saveAuthFlag, isAuthenticated } from "@/lib/storage";
+import { useState } from "react"
+import { saveAuthFlag, isAuthenticated } from "@/lib/storage"
+import type { ClinicMaster } from "@/lib/actions/clinics"
 
 interface AuthGateProps {
-  clinic: ClinicConfig;
-  children: React.ReactNode;
+  clinic: ClinicMaster
+  children: React.ReactNode
 }
 
 export default function AuthGate({ clinic, children }: AuthGateProps) {
+  const clinicKey = clinic.contract_no || clinic.id
   const [authed, setAuthed] = useState(() => {
-    if (!clinic.password) return true;
-    return isAuthenticated(clinic.id);
-  });
-  const [input, setInput] = useState("");
-  const [error, setError] = useState(false);
+    if (!clinic.hearing_password) return true
+    return isAuthenticated(clinicKey)
+  })
+  const [input, setInput] = useState("")
+  const [error, setError] = useState(false)
 
-  if (authed) return <>{children}</>;
+  if (authed) return <>{children}</>
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (verifyPassword(clinic.id, input)) {
-      saveAuthFlag(clinic.id);
-      setAuthed(true);
+    e.preventDefault()
+    if (!clinic.hearing_password || clinic.hearing_password === input) {
+      saveAuthFlag(clinicKey)
+      setAuthed(true)
     } else {
-      setError(true);
-      setTimeout(() => setError(false), 2000);
+      setError(true)
+      setTimeout(() => setError(false), 2000)
     }
   }
 
@@ -45,7 +46,7 @@ export default function AuthGate({ clinic, children }: AuthGateProps) {
           className="text-lg font-medium mb-1"
           style={{ color: "var(--md-on-surface)" }}
         >
-          {clinic.name}
+          {clinic.clinic_name}
         </h1>
         <p
           className="text-sm mb-6"
@@ -86,5 +87,5 @@ export default function AuthGate({ clinic, children }: AuthGateProps) {
         </form>
       </div>
     </div>
-  );
+  )
 }

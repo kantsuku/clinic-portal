@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { SectionDef } from "@/lib/schema";
 import { getSections } from "@/lib/schema";
-import type { IndustryType } from "@/lib/clinics";
+type IndustryType = "dental" | "corporate";
 import FormField from "./FormField";
 import PrimaryInfoTips from "./PrimaryInfoTips";
 import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";

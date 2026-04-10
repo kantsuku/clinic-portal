@@ -2,9 +2,10 @@
  * ヒアリングフォームのスキーマ定義（業種別ルーター）
  */
 
-import type { IndustryType } from "./clinics";
 import { dentalSections, dentalSteps } from "./industries/dental/schema";
 import { corporateSections, corporateSteps } from "./industries/corporate/schema";
+
+export type IndustryType = "dental" | "corporate";
 
 // ── 型定義（業種共通） ─────────────────────────────────────
 

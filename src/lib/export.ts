@@ -2,14 +2,17 @@
  * 入力データのエクスポート
  */
 
-import { sections } from "./schema";
+import { getSections } from "./schema";
+
+type IndustryType = "dental" | "corporate";
 
 /** JSON形式でダウンロード */
-export function exportAsJson(clinicId: string, data: Record<string, string>) {
+export function exportAsJson(clinicId: string, data: Record<string, string>, industry?: IndustryType) {
+  const industrySections = getSections(industry);
   const exportData = {
     clinicId,
     exportedAt: new Date().toISOString(),
-    sections: sections.map((section) => ({
+    sections: industrySections.map((section) => ({
       id: section.id,
       title: section.title,
       step: section.step,
@@ -30,7 +33,8 @@ export function exportAsJson(clinicId: string, data: Record<string, string>) {
 }
 
 /** テキスト形式でダウンロード */
-export function exportAsText(clinicId: string, data: Record<string, string>) {
+export function exportAsText(clinicId: string, data: Record<string, string>, industry?: IndustryType) {
+  const industrySections = getSections(industry);
   const lines: string[] = [
     `=== Clinic Portal データエクスポート ===`,
     `医院ID: ${clinicId}`,
@@ -38,7 +42,7 @@ export function exportAsText(clinicId: string, data: Record<string, string>) {
     ``,
   ];
 
-  for (const section of sections) {
+  for (const section of industrySections) {
     const filledFields = section.fields.filter((f) => data[f.name]?.trim());
     if (filledFields.length === 0) continue;
 

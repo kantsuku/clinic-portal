@@ -1,9 +1,10 @@
-"use client";
+import { getClinicList } from "@/lib/actions/clinics"
+import ClinicListClient from "@/components/ClinicListClient"
 
-import { getAllClinics } from "@/lib/clinics";
+export const dynamic = "force-dynamic"
 
-export default function Home() {
-  const clinics = getAllClinics();
+export default async function Home() {
+  const clinics = await getClinicList()
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
@@ -32,65 +33,7 @@ export default function Home() {
           医院を選んでください
         </p>
 
-        <div className="space-y-2">
-          {clinics.map((clinic) => (
-            <a
-              key={clinic.id}
-              href={`/clinic/${clinic.id}`}
-              className="block w-full text-left p-4 md-state-layer"
-              style={{
-                background: "var(--md-surface-container)",
-                borderRadius: "var(--md-shape-corner-lg)",
-                boxShadow: "var(--md-elevation-1)",
-                textDecoration: "none",
-                color: "var(--md-on-surface)",
-                transition: "box-shadow 0.2s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.boxShadow = "var(--md-elevation-2)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.boxShadow = "var(--md-elevation-1)")
-              }
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 flex items-center justify-center text-lg font-bold"
-                  style={{
-                    background: "var(--md-primary-container)",
-                    color: "var(--md-primary)",
-                    borderRadius: "var(--md-shape-corner-md)",
-                  }}
-                >
-                  {clinic.name[0]}
-                </div>
-                <div>
-                  <p className="font-medium text-sm">{clinic.name}</p>
-                  <p
-                    className="text-xs font-mono"
-                    style={{ color: "var(--md-on-surface-variant)" }}
-                  >
-                    {clinic.id}
-                  </p>
-                </div>
-                <svg
-                  className="w-5 h-5 ml-auto"
-                  style={{ color: "var(--md-on-surface-variant)" }}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-            </a>
-          ))}
-        </div>
+        <ClinicListClient clinics={clinics} />
 
         <a
           href="/admin"
@@ -104,5 +47,5 @@ export default function Home() {
         </a>
       </div>
     </main>
-  );
+  )
 }

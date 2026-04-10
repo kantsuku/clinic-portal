@@ -2,13 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { saveMissionDraft, loadMissionDraft } from "@/lib/storage";
+import { saveSessionState } from "@/lib/actions/hearing-data";
 import { MISSION_CATEGORIES, ALL_MISSION_QUESTIONS } from "@/lib/mission-questions";
 import MissionAboutModal from "./MissionAboutModal";
 
 interface MissionBuilderProps {
   clinicId: string;
+  clientUuid?: string;
   onComplete: (result: string) => void;
   onBack: () => void;
+  initialDraft?: { mission: string; supplement: string; slogan: string; ways: string } | null;
 }
 
 interface MissionPattern {
@@ -41,9 +44,12 @@ const DK = {
   goldSoft: "rgba(212,168,83,0.15)",
 };
 
-export default function MissionBuilder({ clinicId, onComplete, onBack }: MissionBuilderProps) {
+export default function MissionBuilder({ clinicId, clientUuid, onComplete, onBack, initialDraft }: MissionBuilderProps) {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>(() => {
-    const saved = loadMissionDraft(clinicId);
+    // Priority: Supabase initialDraft > localStorage > defaults
+    const saved = initialDraft && Object.values(initialDraft).some(v => v?.trim())
+      ? initialDraft
+      : loadMissionDraft(clinicId);
     const initial: Record<string, string | string[]> = {};
     for (const q of ALL_MISSION_QUESTIONS) initial[q.key] = q.type === "multi" ? [] : "";
     if (saved) {
@@ -113,7 +119,7 @@ export default function MissionBuilder({ clinicId, onComplete, onBack }: Mission
   const resultRef = useRef<HTMLDivElement>(null);
   const [showAbout, setShowAbout] = useState(false);
 
-  useEffect(() => { saveMissionDraft(clinicId, answers as any); }, [answers, clinicId]);
+  useEffect(() => { saveMissionDraft(clinicId, answers as any); if (clientUuid) { saveSessionState(clientUuid, { missionDraft: answers as any }); } }, [answers, clinicId, clientUuid]);
 
   const filledCount = ALL_MISSION_QUESTIONS.filter((q) => {
     const v = answers[q.key];
