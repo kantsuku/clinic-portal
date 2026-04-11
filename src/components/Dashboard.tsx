@@ -4,6 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import { getSections, getSteps, type SectionDef, type StepDef } from "@/lib/schema";
 type IndustryType = "dental" | "corporate";
 import { getPonkoMessage } from "@/lib/ponko-messages";
+import { ChevronRight } from "lucide-react";
+import Icon from "./Icon";
 
 import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";
 import PrimaryInfoModal from "./PrimaryInfoModal";
@@ -273,13 +275,14 @@ export default function Dashboard({ values, onSelectSection, industry }: Dashboa
                   >
                     <div className="flex items-center gap-4">
                       <div
-                        className="w-10 h-10 flex items-center justify-center text-xl shrink-0"
+                        className="w-10 h-10 flex items-center justify-center shrink-0"
                         style={{
                           background: pct === 100 ? "var(--md-tertiary-container)" : "var(--md-secondary-container)",
+                          color: pct === 100 ? "var(--md-tertiary)" : "var(--md-on-surface-variant)",
                           borderRadius: "var(--md-shape-corner-md)",
                         }}
                       >
-                        {section.icon}
+                        <Icon name={section.icon} size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1.5">
@@ -353,15 +356,11 @@ export default function Dashboard({ values, onSelectSection, industry }: Dashboa
                           </p>
                         )}
                       </div>
-                      <svg
-                        className="w-5 h-5 shrink-0"
+                      <ChevronRight
+                        size={20}
+                        className="shrink-0"
                         style={{ color: "var(--md-on-surface-variant)" }}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      />
                     </div>
                   </button>
                 );

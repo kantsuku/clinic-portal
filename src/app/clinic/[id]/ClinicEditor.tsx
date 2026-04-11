@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useMemo } from "react"
+import { ChevronRight } from "lucide-react"
 import { getSections, getSectionById, getDefaultValues } from "@/lib/schema"
 import { loadClinicData, saveLastSection, getLastSection, isOnboardingDone, setOnboardingDone } from "@/lib/storage"
 import { DEMO_DATA } from "@/lib/seed-data"
@@ -170,9 +171,7 @@ export default function ClinicEditor({ clinic, initialData, initialSession }: Cl
                 前回は「{lastSectionName}」を編集してましたよ！続きからどうぞ！
               </p>
             </div>
-            <svg className="w-5 h-5 shrink-0" style={{ color: "var(--md-primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <ChevronRight size={20} className="shrink-0" style={{ color: "var(--md-primary)" }} />
           </div>
         )}
 

@@ -16,7 +16,7 @@ export const sections: SectionDef[] = [
     id: "tone-manner",
     title: "トーン&マナー",
     description: "HPの文章のルールを最初に決めておきましょう！",
-    icon: "🎨",
+    icon: "Palette",
     step: 0, estimatedMinutes: 3,
     fields: [
       {
@@ -106,7 +106,7 @@ export const sections: SectionDef[] = [
     id: "basic",
     title: "基本情報",
     description: "まずは医院の基本情報からお願いします！",
-    icon: "🏥",
+    icon: "Hospital",
     step: 1, estimatedMinutes: 5,
     fields: [
       {
@@ -195,7 +195,7 @@ export const sections: SectionDef[] = [
     id: "director",
     title: "院長プロフィール",
     description: "院長先生のこと、教えてください！",
-    icon: "👨‍⚕️",
+    icon: "UserRound",
     step: 1, estimatedMinutes: 5,
     fields: [
       {
@@ -248,7 +248,7 @@ export const sections: SectionDef[] = [
     id: "philosophy-origin",
     title: "原点・ルーツ",
     description: "先生が歯科医師になるまでの物語を教えてください！",
-    icon: "🌱",
+    icon: "Sprout",
     step: 2, estimatedMinutes: 10,
     fields: [
       {
@@ -313,7 +313,7 @@ export const sections: SectionDef[] = [
     id: "philosophy-core",
     title: "理念・診療哲学",
     description: "先生の診療に対する考え方を教えてください！",
-    icon: "💡",
+    icon: "Lightbulb",
     step: 1, estimatedMinutes: 10,
     fields: [
       {
@@ -376,7 +376,7 @@ export const sections: SectionDef[] = [
     id: "philosophy-story",
     title: "エピソード・人柄",
     description: "先生の人柄が伝わるエピソードを教えてください！",
-    icon: "📖",
+    icon: "BookOpen",
     step: 2, estimatedMinutes: 15,
     fields: [
       {
@@ -469,7 +469,7 @@ export const sections: SectionDef[] = [
     id: "features",
     title: "医院の特徴・設備",
     description: "先生の医院のアピールポイント、たくさん教えてください！",
-    icon: "⭐",
+    icon: "Star",
     step: 1, estimatedMinutes: 10,
     fields: [
       {
@@ -534,7 +534,7 @@ export const sections: SectionDef[] = [
     id: "treatment-menu",
     title: "診療内容",
     description: "対応している診療メニューを教えてください！こだわりがあるものはぜひ詳しく！",
-    icon: "🦷",
+    icon: "Tooth",
     step: 2, estimatedMinutes: 10,
     fields: [
       {
@@ -646,7 +646,7 @@ export const sections: SectionDef[] = [
     id: "equipment-check",
     title: "設備・院内環境",
     description: "導入している設備や院内の環境を教えてください！",
-    icon: "🔬",
+    icon: "Microscope",
     step: 2, estimatedMinutes: 5,
     fields: [
       {
@@ -739,7 +739,7 @@ export const sections: SectionDef[] = [
     id: "price-table",
     title: "自費診療 料金表",
     description: "自費診療の料金を教えてください！",
-    icon: "💰",
+    icon: "CircleDollarSign",
     step: 2,
     estimatedMinutes: 10,
     fields: [
@@ -757,7 +757,7 @@ export const sections: SectionDef[] = [
     id: "case-studies",
     title: "症例紹介",
     description: "先生の治療の実力が伝わる症例を紹介しましょう！",
-    icon: "📋",
+    icon: "ClipboardList",
     step: 2,
     estimatedMinutes: 15,
     fields: [

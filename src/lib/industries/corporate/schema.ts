@@ -14,7 +14,7 @@ export const corporateSections: SectionDef[] = [
     id: "tone-manner",
     title: "トーン&マナー",
     description: "Webサイトの文章ルールを最初に決めましょう！",
-    icon: "🎨",
+    icon: "Palette",
     step: 0,
     estimatedMinutes: 3,
     fields: [
@@ -38,7 +38,7 @@ export const corporateSections: SectionDef[] = [
     id: "company-basic",
     title: "会社概要",
     description: "会社の基本情報をお願いします！",
-    icon: "🏢",
+    icon: "Building2",
     step: 1,
     estimatedMinutes: 5,
     fields: [
@@ -74,7 +74,7 @@ export const corporateSections: SectionDef[] = [
     id: "ceo-profile",
     title: "代表メッセージ",
     description: "代表の方のプロフィールとメッセージをお願いします！",
-    icon: "👤",
+    icon: "UserRound",
     step: 1,
     estimatedMinutes: 10,
     fields: [
@@ -107,7 +107,7 @@ export const corporateSections: SectionDef[] = [
     id: "philosophy",
     title: "企業理念・ビジョン",
     description: "会社として大切にしていることを教えてください！",
-    icon: "💡",
+    icon: "Lightbulb",
     step: 1,
     estimatedMinutes: 10,
     fields: [
@@ -158,7 +158,7 @@ export const corporateSections: SectionDef[] = [
     id: "strengths",
     title: "強み・特徴",
     description: "御社のアピールポイントをたくさん教えてください！",
-    icon: "⭐",
+    icon: "Star",
     step: 1,
     estimatedMinutes: 10,
     fields: [
@@ -196,7 +196,7 @@ export const corporateSections: SectionDef[] = [
     id: "origin-story",
     title: "創業ストーリー",
     description: "会社の成り立ちを教えてください！",
-    icon: "🌱",
+    icon: "Sprout",
     step: 2,
     estimatedMinutes: 10,
     fields: [
@@ -238,7 +238,7 @@ export const corporateSections: SectionDef[] = [
     id: "results",
     title: "実績・お客様の声",
     description: "これまでの実績やお客さまの声を教えてください！",
-    icon: "📖",
+    icon: "BookOpen",
     step: 2,
     estimatedMinutes: 10,
     fields: [
@@ -278,7 +278,7 @@ export const corporateSections: SectionDef[] = [
     id: "team",
     title: "チーム・社風",
     description: "どんな会社か、雰囲気を教えてください！",
-    icon: "👥",
+    icon: "Users",
     step: 2,
     estimatedMinutes: 10,
     fields: [
@@ -323,7 +323,7 @@ export const corporateSections: SectionDef[] = [
     id: "services",
     title: "サービス・事業詳細",
     description: "提供しているサービスの詳細を教えてください！",
-    icon: "📋",
+    icon: "ClipboardList",
     step: 2,
     estimatedMinutes: 15,
     fields: [

@@ -1,6 +1,7 @@
 "use client";
 
 import type { FieldDef } from "@/lib/schema";
+import { Copy, Zap } from "lucide-react";
 import WeekdayHoursInput from "./WeekdayHoursInput";
 import SnsInput from "./SnsInput";
 import PaymentInput from "./PaymentInput";
@@ -56,9 +57,7 @@ export default function FormField({ field, value, onChange, allValues }: FormFie
             }}
             aria-label="コピー"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
+            <Copy size={16} />
           </button>
         )}
       </div>
@@ -92,9 +91,7 @@ export default function FormField({ field, value, onChange, allValues }: FormFie
                 className="text-xs font-medium mb-2 flex items-center gap-1.5"
                 style={{ color: "var(--md-on-surface-variant)" }}
               >
-                <svg className="w-4 h-4" style={{ color: "var(--md-primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+                <Zap size={16} style={{ color: "var(--md-primary)" }} />
                 テンプレートから選ぶ
               </p>
               <div className="flex flex-wrap gap-1.5">

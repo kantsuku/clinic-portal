@@ -8,6 +8,8 @@ import FormField from "./FormField";
 import PrimaryInfoTips from "./PrimaryInfoTips";
 import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";
 import GuideMode from "./GuideMode";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Icon from "./Icon";
 
 interface SectionFormProps {
   section: SectionDef;
@@ -74,9 +76,7 @@ export default function SectionForm({
           fontWeight: 500,
         }}
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
+        <ChevronLeft size={20} />
         一覧に戻る
       </button>
 
@@ -91,13 +91,14 @@ export default function SectionForm({
       >
         <div className="flex items-center gap-3 mb-3">
           <div
-            className="w-11 h-11 flex items-center justify-center text-2xl"
+            className="w-11 h-11 flex items-center justify-center"
             style={{
               background: "var(--md-primary-container)",
+              color: "var(--md-primary)",
               borderRadius: "var(--md-shape-corner-md)",
             }}
           >
-            {section.icon}
+            <Icon name={section.icon} size={22} />
           </div>
           <div>
             <h2 className="text-lg font-medium" style={{ color: "var(--md-on-surface)" }}>
@@ -231,9 +232,7 @@ export default function SectionForm({
                   cursor: "pointer",
                 }}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+                <ChevronLeft size={16} />
                 {prevSection.title}
               </button>
             )}
@@ -250,9 +249,7 @@ export default function SectionForm({
                 }}
               >
                 {nextSection.title}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <ChevronRight size={16} />
               </button>
             )}
             {!nextSection && (

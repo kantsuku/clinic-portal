@@ -7,6 +7,8 @@ import { getSections } from "@/lib/schema"
 import { analyzePrimaryInfo } from "@/lib/primary-info-analyzer"
 import { exportAsText, exportAsJson } from "@/lib/export"
 import type { ClinicMaster } from "@/lib/actions/clinics"
+import { ChevronDown, ChevronUp, ArrowLeft } from "lucide-react"
+import Icon, { normalizeIconName } from "@/components/Icon"
 
 type IndustryType = "dental" | "corporate"
 
@@ -47,7 +49,7 @@ function getClinicStats(clinic: ClinicMaster): ClinicStats {
 
   const emptySections = industrySections
     .filter((s) => s.fields.every((f) => !data[f.name]?.trim()))
-    .map((s) => `${s.icon} ${s.title}`)
+    .map((s) => s.title)
 
   return {
     clinic,
@@ -79,9 +81,7 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
   return (
     <main className="px-4 py-8 sm:py-12 max-w-2xl mx-auto">
       <a href="/" className="text-sm flex items-center gap-1 mb-4" style={{ color: "var(--md-primary)", textDecoration: "none" }}>
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
+        <ArrowLeft size={20} />
         トップに戻る
       </a>
 
@@ -126,8 +126,8 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                 style={{ background: "transparent", border: "none", cursor: "pointer" }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 flex items-center justify-center text-lg shrink-0" style={{ background: "var(--md-primary-container)", color: "var(--md-primary)", borderRadius: "var(--md-shape-corner-md)" }}>
-                    {clinic.icon_emoji || clinic.clinic_name[0]}
+                  <div className="w-10 h-10 flex items-center justify-center shrink-0" style={{ background: "var(--md-primary-container)", color: "var(--md-primary)", borderRadius: "var(--md-shape-corner-md)" }}>
+                    <Icon name={normalizeIconName(clinic.icon_emoji)} size={20} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
@@ -162,9 +162,10 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                       )}
                     </div>
                   </div>
-                  <svg className="w-5 h-5 shrink-0 transition-transform" style={{ color: "var(--md-on-surface-variant)", transform: expandedId === clinic.id ? "rotate(180deg)" : "" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  {expandedId === clinic.id
+                    ? <ChevronUp size={20} className="shrink-0" style={{ color: "var(--md-on-surface-variant)" }} />
+                    : <ChevronDown size={20} className="shrink-0" style={{ color: "var(--md-on-surface-variant)" }} />
+                  }
                 </div>
               </button>
 

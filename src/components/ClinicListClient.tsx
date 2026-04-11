@@ -1,6 +1,8 @@
 "use client"
 
 import type { ClinicMaster } from "@/lib/actions/clinics"
+import { ChevronRight } from "lucide-react"
+import Icon, { normalizeIconName } from "./Icon"
 
 export default function ClinicListClient({ clinics }: { clinics: ClinicMaster[] }) {
   return (
@@ -27,14 +29,14 @@ export default function ClinicListClient({ clinics }: { clinics: ClinicMaster[] 
         >
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 flex items-center justify-center text-lg"
+              className="w-10 h-10 flex items-center justify-center"
               style={{
                 background: "var(--md-primary-container)",
                 color: "var(--md-primary)",
                 borderRadius: "var(--md-shape-corner-md)",
               }}
             >
-              {clinic.icon_emoji || clinic.clinic_name[0]}
+              <Icon name={normalizeIconName(clinic.icon_emoji)} size={20} />
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-medium text-sm truncate">{clinic.clinic_name}</p>
@@ -45,20 +47,11 @@ export default function ClinicListClient({ clinics }: { clinics: ClinicMaster[] 
                 {clinic.contract_no || clinic.id.slice(0, 8)}
               </p>
             </div>
-            <svg
-              className="w-5 h-5 shrink-0"
+            <ChevronRight
+              size={20}
+              className="shrink-0"
               style={{ color: "var(--md-on-surface-variant)" }}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            />
           </div>
         </a>
       ))}
