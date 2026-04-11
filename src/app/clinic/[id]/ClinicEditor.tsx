@@ -115,7 +115,7 @@ export default function ClinicEditor({ clinic, initialData, initialSession }: Cl
     const total = section.fields.length
     if (filled === total && total > 0 && prevFilledRef[currentSection] < total) {
       setConfettiTrigger(true)
-      showToast(`${section.icon} ${section.title} 完了！おめでとうございます！`)
+      showToast(`${section.title} 完了！おめでとうございます！`)
       setTimeout(() => setConfettiTrigger(false), 100)
     }
     prevFilledRef[currentSection] = filled

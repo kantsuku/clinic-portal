@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { loadClinicData } from "@/lib/storage"
+import { useState, useMemo, useCallback } from "react"
 import type { HearingStats } from "@/lib/actions/hearing-stats"
 import { getSections } from "@/lib/schema"
 import { analyzePrimaryInfo } from "@/lib/primary-info-analyzer"
@@ -31,43 +30,10 @@ interface ClinicStats {
   filledFields: number
   progressPct: number
   primaryScore: number
-  lastUpdated: string | null
   emptySections: string[]
-}
-
-function getClinicStats(clinic: ClinicMaster): ClinicStats {
-  const clinicKey = clinic.contract_no || clinic.id
-  const saved = loadClinicData(clinicKey)
-  const data = saved?.data || {}
-  const industry = clinic.industry || "dental"
-  const industrySections = getSections(industry)
-  const allFields = industrySections.flatMap((s) => s.fields)
-  const filled = allFields.filter((f) => data[f.name]?.trim()).length
-  const pct = allFields.length > 0 ? Math.round((filled / allFields.length) * 100) : 0
-
-  let totalScore = 0
-  let scoreCount = 0
-  for (const field of allFields) {
-    if ((field.type === "textarea" || field.type === "repeater") && data[field.name]?.trim()?.length > 10) {
-      totalScore += analyzePrimaryInfo(data[field.name]).score
-      scoreCount++
-    }
-  }
-  const primaryScore = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0
-
-  const emptySections = industrySections
-    .filter((s) => s.fields.every((f) => !data[f.name]?.trim()))
-    .map((s) => s.title)
-
-  return {
-    clinic,
-    totalFields: allFields.length,
-    filledFields: filled,
-    progressPct: pct,
-    primaryScore,
-    lastUpdated: saved?.updatedAt || null,
-    emptySections,
-  }
+  formData: Record<string, string>
+  hearingStatus: string | null
+  hearingUpdatedAt: string | null
 }
 
 function formatDate(iso: string): string {
@@ -78,8 +44,9 @@ function formatDate(iso: string): string {
 export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics: ClinicMaster[]; hearingStats?: HearingStats[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set())
-  const [sentIds, setSentIds] = useState<Set<string>>(new Set())
   const [sendResults, setSendResults] = useState<Record<string, { ok: boolean; message: string }>>({})
+  // Track status overrides after send (until page reload refreshes from server)
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({})
 
   const hearingMap = useMemo(() => {
     const map: Record<string, HearingStats> = {}
@@ -87,45 +54,83 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
     return map
   }, [hearingStats])
 
-  const stats = useMemo(
-    () => clinics.map(getClinicStats).sort((a, b) => b.progressPct - a.progressPct),
-    [clinics]
-  )
+  const stats = useMemo(() => {
+    return clinics.map((clinic): ClinicStats => {
+      const industry = clinic.industry || "dental"
+      const industrySections = getSections(industry)
+      const allFields = industrySections.flatMap((s) => s.fields)
+      const hearing = hearingMap[clinic.id]
+      const formData = hearing?.form_data || {}
+
+      const filled = allFields.filter((f) => formData[f.name]?.trim()).length
+      const pct = allFields.length > 0 ? Math.round((filled / allFields.length) * 100) : 0
+
+      let totalScore = 0
+      let scoreCount = 0
+      for (const field of allFields) {
+        if ((field.type === "textarea" || field.type === "repeater") && formData[field.name]?.trim()?.length > 10) {
+          totalScore += analyzePrimaryInfo(formData[field.name]).score
+          scoreCount++
+        }
+      }
+      const primaryScore = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0
+
+      const emptySections = industrySections
+        .filter((s) => s.fields.every((f) => !formData[f.name]?.trim()))
+        .map((s) => s.title)
+
+      return {
+        clinic,
+        totalFields: allFields.length,
+        filledFields: filled,
+        progressPct: pct,
+        primaryScore,
+        emptySections,
+        formData,
+        hearingStatus: hearing?.status || null,
+        hearingUpdatedAt: hearing?.updated_at || null,
+      }
+    }).sort((a, b) => b.progressPct - a.progressPct)
+  }, [clinics, hearingMap])
 
   const avgProgress = stats.length > 0 ? Math.round(stats.reduce((s, c) => s + c.progressPct, 0) / stats.length) : 0
-  const avgPrimary = stats.length > 0 ? Math.round(stats.filter((s) => s.primaryScore > 0).reduce((s, c) => s + c.primaryScore, 0) / Math.max(1, stats.filter((s) => s.primaryScore > 0).length)) : 0
+  const avgPrimary = (() => {
+    const withScore = stats.filter((s) => s.primaryScore > 0)
+    return withScore.length > 0 ? Math.round(withScore.reduce((s, c) => s + c.primaryScore, 0) / withScore.length) : 0
+  })()
 
-  async function handleDnaOsSend(clinic: ClinicMaster) {
-    const clinicKey = clinic.contract_no || clinic.id
+  const handleDnaOsSend = useCallback(async (clinicStat: ClinicStats) => {
+    const { clinic, formData, filledFields } = clinicStat
     const industry = clinic.industry || "dental"
-    const saved = loadClinicData(clinicKey)
-    const data = saved?.data || {}
-    const sections = getSections(industry)
-    const mappings = buildFieldMappings(sections)
 
-    const filledCount = mappings.filter((m) => data[m.fieldName]?.trim()).length
-    if (filledCount === 0) {
-      setSendResults((prev) => ({ ...prev, [clinic.id]: { ok: false, message: "入力データがありません" } }))
+    if (filledFields === 0) {
+      setSendResults((prev) => ({ ...prev, [clinic.id]: { ok: false, message: "Supabaseにヒアリングデータがありません" } }))
       return
     }
 
+    // Prevent double-send
+    if (sendingIds.has(clinic.id)) return
     setSendingIds((prev) => new Set(prev).add(clinic.id))
     setSendResults((prev) => { const n = { ...prev }; delete n[clinic.id]; return n })
 
     try {
-      const result = await submitToDnaOsLite(clinic.id, data, mappings)
+      const sections = getSections(industry)
+      const mappings = buildFieldMappings(sections)
+      const result = await submitToDnaOsLite(clinic.id, formData, mappings)
+
       if ("error" in result) {
         setSendResults((prev) => ({ ...prev, [clinic.id]: { ok: false, message: result.error } }))
       } else {
-        setSentIds((prev) => new Set(prev).add(clinic.id))
+        setStatusOverrides((prev) => ({ ...prev, [clinic.id]: "submitted" }))
         setSendResults((prev) => ({ ...prev, [clinic.id]: { ok: true, message: `${result.count}件送信完了` } }))
       }
     } catch (e) {
+      console.error(`DNA OS submit failed for ${clinic.id}:`, e)
       setSendResults((prev) => ({ ...prev, [clinic.id]: { ok: false, message: "送信に失敗しました" } }))
     } finally {
       setSendingIds((prev) => { const n = new Set(prev); n.delete(clinic.id); return n })
     }
-  }
+  }, [sendingIds])
 
   return (
     <main className="px-4 py-8 sm:py-12 max-w-2xl mx-auto">
@@ -160,11 +165,11 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
       )}
 
       <div className="space-y-2 mb-6">
-        {stats.map(({ clinic, filledFields, totalFields, progressPct, primaryScore, lastUpdated, emptySections }) => {
+        {stats.map((clinicStat) => {
+          const { clinic, filledFields, totalFields, progressPct, primaryScore, emptySections, hearingUpdatedAt } = clinicStat
           const clinicKey = clinic.contract_no || clinic.id
           const industry = clinic.industry || "dental"
-          const hearing = hearingMap[clinic.id]
-          const hearingStatus = sentIds.has(clinic.id) ? "submitted" : hearing?.status || null
+          const hearingStatus = statusOverrides[clinic.id] || clinicStat.hearingStatus
           const statusInfo = hearingStatus ? STATUS_LABELS[hearingStatus] : null
           const isSending = sendingIds.has(clinic.id)
           const result = sendResults[clinic.id]
@@ -201,7 +206,7 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                         <div className="h-full" style={{ width: `${progressPct}%`, background: progressPct === 100 ? "var(--md-tertiary)" : "var(--md-primary)", borderRadius: "100px" }} />
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 mt-1">
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
                       <span className="text-[11px]" style={{ color: "var(--md-on-surface-variant)" }}>
                         {filledFields}/{totalFields}項目
                       </span>
@@ -215,9 +220,9 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                           {statusInfo.label}
                         </span>
                       )}
-                      {lastUpdated && (
+                      {hearingUpdatedAt && (
                         <span className="text-[11px]" style={{ color: "var(--md-on-surface-variant)" }}>
-                          更新 {formatDate(lastUpdated)}
+                          更新 {formatDate(hearingUpdatedAt)}
                         </span>
                       )}
                     </div>
@@ -250,9 +255,7 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                     <p className="text-xs font-medium mb-1.5" style={{ color: "var(--md-on-surface-variant)" }}>セクション別進捗</p>
                     <div className="space-y-1">
                       {getSections(industry).map((sec) => {
-                        const saved = loadClinicData(clinicKey)
-                        const data = saved?.data || {}
-                        const secFilled = sec.fields.filter((f) => data[f.name]?.trim()).length
+                        const secFilled = sec.fields.filter((f) => clinicStat.formData[f.name]?.trim()).length
                         const secTotal = sec.fields.length
                         const secPct = secTotal > 0 ? Math.round((secFilled / secTotal) * 100) : 0
                         return (
@@ -291,7 +294,7 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                         開く
                       </a>
                       <button
-                        onClick={() => handleDnaOsSend(clinic)}
+                        onClick={() => handleDnaOsSend(clinicStat)}
                         disabled={isSending || filledFields === 0}
                         className="text-xs font-medium px-3 py-2 flex items-center gap-1.5"
                         style={{
@@ -310,10 +313,10 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                             : <><Send size={14} /> DNA OS送信</>
                         }
                       </button>
-                      <button onClick={() => exportAsText(clinicKey, loadClinicData(clinicKey)?.data || {}, industry)} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
+                      <button onClick={() => exportAsText(clinicKey, clinicStat.formData, industry)} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
                         <FileText size={14} /> テキスト
                       </button>
-                      <button onClick={() => exportAsJson(clinicKey, loadClinicData(clinicKey)?.data || {}, industry)} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
+                      <button onClick={() => exportAsJson(clinicKey, clinicStat.formData, industry)} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
                         <FileJson size={14} /> JSON
                       </button>
                       <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/clinic/${clinicKey}`); alert("URLをコピーしました"); }} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
