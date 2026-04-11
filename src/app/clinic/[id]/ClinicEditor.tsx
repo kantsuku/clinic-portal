@@ -7,8 +7,8 @@ import { loadClinicData, saveLastSection, getLastSection, isOnboardingDone, setO
 import { DEMO_DATA } from "@/lib/seed-data"
 import { useAutoSave } from "@/hooks/useAutoSave"
 import { exportAsJson, exportAsText } from "@/lib/export"
-import { buildFieldMappings } from "@/lib/dnaos-mapping"
-import { submitToDnaOsLite, saveSessionState } from "@/lib/actions/hearing-data"
+// buildFieldMappings moved to admin-only flow
+import { saveSessionState } from "@/lib/actions/hearing-data"
 import type { HearingSession } from "@/lib/actions/hearing-data"
 import { showToast } from "@/components/Toast"
 import Dashboard from "@/components/Dashboard"
@@ -21,7 +21,7 @@ import HamburgerMenu from "@/components/HamburgerMenu"
 import Onboarding from "@/components/Onboarding"
 import MissionBuilder from "@/components/MissionBuilder"
 import PresetModal from "@/components/PresetModal"
-import DnaOsSendButton from "@/components/DnaOsSendButton"
+// DnaOsSendButton removed — DNA OS submission is admin-only
 import type { ClinicMaster } from "@/lib/actions/clinics"
 
 interface ClinicEditorProps {
@@ -121,18 +121,7 @@ export default function ClinicEditor({ clinic, initialData, initialSession }: Cl
     prevFilledRef[currentSection] = filled
   }, [values, currentSection])
 
-  // DNA OS Lite submit handler
-  async function handleDnaOsSubmit() {
-    const sections = getSections(industry)
-    const mappings = buildFieldMappings(sections)
-    const result = await submitToDnaOsLite(clinic.id, values, mappings)
-    if ("error" in result) {
-      showToast(`送信失敗: ${result.error}`)
-      return false
-    }
-    showToast(`DNA OS Lite に ${result.count} 件送信しました！`)
-    return true
-  }
+  // DNA OS Lite submit removed — admin-only via /admin
 
   // Onboarding complete handler
   function handleOnboardingComplete() {
@@ -196,18 +185,11 @@ export default function ClinicEditor({ clinic, initialData, initialSession }: Cl
             industry={industry}
           />
         ) : (
-          <>
-            <Dashboard
-              values={values}
-              onSelectSection={handleSectionChange}
-              industry={industry}
-            />
-            <DnaOsSendButton
-              onSubmit={handleDnaOsSubmit}
-              values={values}
-              industry={industry}
-            />
-          </>
+          <Dashboard
+            values={values}
+            onSelectSection={handleSectionChange}
+            industry={industry}
+          />
         )}
       </main>
 

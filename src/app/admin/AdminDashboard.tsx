@@ -6,8 +6,10 @@ import type { HearingStats } from "@/lib/actions/hearing-stats"
 import { getSections } from "@/lib/schema"
 import { analyzePrimaryInfo } from "@/lib/primary-info-analyzer"
 import { exportAsText, exportAsJson } from "@/lib/export"
+import { buildFieldMappings } from "@/lib/dnaos-mapping"
+import { submitToDnaOsLite } from "@/lib/actions/hearing-data"
 import type { ClinicMaster } from "@/lib/actions/clinics"
-import { ChevronDown, ChevronUp, ArrowLeft } from "lucide-react"
+import { ChevronDown, ChevronUp, ArrowLeft, Upload, Send, Check, Loader2, FileText, FileJson, Link2 } from "lucide-react"
 import Icon, { normalizeIconName } from "@/components/Icon"
 
 type IndustryType = "dental" | "corporate"
@@ -15,6 +17,12 @@ type IndustryType = "dental" | "corporate"
 const INDUSTRY_LABELS: Record<IndustryType, string> = {
   dental: "歯科医院",
   corporate: "一般企業",
+}
+
+const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
+  editing: { label: "入力中", color: "var(--md-on-surface-variant)", bg: "var(--md-surface-container-high)" },
+  completed: { label: "入力完了", color: "var(--md-primary)", bg: "var(--md-primary-container)" },
+  submitted: { label: "送信済み", color: "var(--md-tertiary)", bg: "var(--md-tertiary-container)" },
 }
 
 interface ClinicStats {
@@ -69,6 +77,15 @@ function formatDate(iso: string): string {
 
 export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics: ClinicMaster[]; hearingStats?: HearingStats[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [sendingIds, setSendingIds] = useState<Set<string>>(new Set())
+  const [sentIds, setSentIds] = useState<Set<string>>(new Set())
+  const [sendResults, setSendResults] = useState<Record<string, { ok: boolean; message: string }>>({})
+
+  const hearingMap = useMemo(() => {
+    const map: Record<string, HearingStats> = {}
+    for (const s of hearingStats) map[s.client_id] = s
+    return map
+  }, [hearingStats])
 
   const stats = useMemo(
     () => clinics.map(getClinicStats).sort((a, b) => b.progressPct - a.progressPct),
@@ -77,6 +94,38 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
 
   const avgProgress = stats.length > 0 ? Math.round(stats.reduce((s, c) => s + c.progressPct, 0) / stats.length) : 0
   const avgPrimary = stats.length > 0 ? Math.round(stats.filter((s) => s.primaryScore > 0).reduce((s, c) => s + c.primaryScore, 0) / Math.max(1, stats.filter((s) => s.primaryScore > 0).length)) : 0
+
+  async function handleDnaOsSend(clinic: ClinicMaster) {
+    const clinicKey = clinic.contract_no || clinic.id
+    const industry = clinic.industry || "dental"
+    const saved = loadClinicData(clinicKey)
+    const data = saved?.data || {}
+    const sections = getSections(industry)
+    const mappings = buildFieldMappings(sections)
+
+    const filledCount = mappings.filter((m) => data[m.fieldName]?.trim()).length
+    if (filledCount === 0) {
+      setSendResults((prev) => ({ ...prev, [clinic.id]: { ok: false, message: "入力データがありません" } }))
+      return
+    }
+
+    setSendingIds((prev) => new Set(prev).add(clinic.id))
+    setSendResults((prev) => { const n = { ...prev }; delete n[clinic.id]; return n })
+
+    try {
+      const result = await submitToDnaOsLite(clinic.id, data, mappings)
+      if ("error" in result) {
+        setSendResults((prev) => ({ ...prev, [clinic.id]: { ok: false, message: result.error } }))
+      } else {
+        setSentIds((prev) => new Set(prev).add(clinic.id))
+        setSendResults((prev) => ({ ...prev, [clinic.id]: { ok: true, message: `${result.count}件送信完了` } }))
+      }
+    } catch (e) {
+      setSendResults((prev) => ({ ...prev, [clinic.id]: { ok: false, message: "送信に失敗しました" } }))
+    } finally {
+      setSendingIds((prev) => { const n = new Set(prev); n.delete(clinic.id); return n })
+    }
+  }
 
   return (
     <main className="px-4 py-8 sm:py-12 max-w-2xl mx-auto">
@@ -114,6 +163,12 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
         {stats.map(({ clinic, filledFields, totalFields, progressPct, primaryScore, lastUpdated, emptySections }) => {
           const clinicKey = clinic.contract_no || clinic.id
           const industry = clinic.industry || "dental"
+          const hearing = hearingMap[clinic.id]
+          const hearingStatus = sentIds.has(clinic.id) ? "submitted" : hearing?.status || null
+          const statusInfo = hearingStatus ? STATUS_LABELS[hearingStatus] : null
+          const isSending = sendingIds.has(clinic.id)
+          const result = sendResults[clinic.id]
+
           return (
             <div
               key={clinic.id}
@@ -153,6 +208,11 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                       {primaryScore > 0 && (
                         <span className="text-[11px]" style={{ color: primaryScore >= 50 ? "var(--md-tertiary)" : "var(--md-on-surface-variant)" }}>
                           一次情報 {primaryScore}%
+                        </span>
+                      )}
+                      {statusInfo && (
+                        <span className="text-[11px] px-1.5 py-0.5" style={{ background: statusInfo.bg, color: statusInfo.color, borderRadius: "100px" }}>
+                          {statusInfo.label}
                         </span>
                       )}
                       {lastUpdated && (
@@ -197,7 +257,9 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                         const secPct = secTotal > 0 ? Math.round((secFilled / secTotal) * 100) : 0
                         return (
                           <div key={sec.id} className="flex items-center gap-2">
-                            <span className="text-xs w-5">{sec.icon}</span>
+                            <span className="w-5 flex items-center justify-center" style={{ color: "var(--md-on-surface-variant)" }}>
+                              <Icon name={sec.icon} size={14} />
+                            </span>
                             <span className="text-[11px] flex-1 truncate" style={{ color: "var(--md-on-surface)" }}>{sec.title}</span>
                             <div className="w-16 h-1 overflow-hidden" style={{ background: "var(--md-outline-variant)", borderRadius: "100px" }}>
                               <div className="h-full" style={{ width: `${secPct}%`, background: secPct === 100 ? "var(--md-tertiary)" : "var(--md-primary)", borderRadius: "100px" }} />
@@ -211,19 +273,53 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <a href={`/clinic/${clinicKey}`} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-primary)", color: "var(--md-on-primary)", borderRadius: "100px", textDecoration: "none" }}>
-                      開く
-                    </a>
-                    <button onClick={() => exportAsText(clinicKey, loadClinicData(clinicKey)?.data || {}, industry)} className="text-xs font-medium px-3 py-2" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
-                      テキスト出力
-                    </button>
-                    <button onClick={() => exportAsJson(clinicKey, loadClinicData(clinicKey)?.data || {}, industry)} className="text-xs font-medium px-3 py-2" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
-                      JSON出力
-                    </button>
-                    <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/clinic/${clinicKey}`); alert("URLをコピーしました"); }} className="text-xs font-medium px-3 py-2" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
-                      URL共有
-                    </button>
+                  {/* DNA OS Lite 送信 */}
+                  <div className="pt-2">
+                    {result && (
+                      <div className="mb-2 p-2.5 text-xs" style={{
+                        background: result.ok ? "var(--md-tertiary-container)" : "var(--md-error-container)",
+                        color: result.ok ? "var(--md-on-tertiary-container)" : "var(--md-on-error-container)",
+                        borderRadius: "var(--md-shape-corner-md)",
+                      }}>
+                        {result.ok ? <Check size={14} className="inline mr-1" /> : null}
+                        {result.message}
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-2">
+                      <a href={`/clinic/${clinicKey}`} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-primary)", color: "var(--md-on-primary)", borderRadius: "100px", textDecoration: "none" }}>
+                        開く
+                      </a>
+                      <button
+                        onClick={() => handleDnaOsSend(clinic)}
+                        disabled={isSending || filledFields === 0}
+                        className="text-xs font-medium px-3 py-2 flex items-center gap-1.5"
+                        style={{
+                          background: hearingStatus === "submitted" ? "var(--md-surface-container-low)" : "var(--md-tertiary)",
+                          color: hearingStatus === "submitted" ? "var(--md-on-surface)" : "var(--md-on-primary)",
+                          borderRadius: "100px",
+                          border: hearingStatus === "submitted" ? "1px solid var(--md-outline-variant)" : "none",
+                          cursor: isSending || filledFields === 0 ? "not-allowed" : "pointer",
+                          opacity: filledFields === 0 ? 0.5 : 1,
+                        }}
+                      >
+                        {isSending
+                          ? <><Loader2 size={14} className="animate-spin" /> 送信中...</>
+                          : hearingStatus === "submitted"
+                            ? <><Upload size={14} /> 再送信</>
+                            : <><Send size={14} /> DNA OS送信</>
+                        }
+                      </button>
+                      <button onClick={() => exportAsText(clinicKey, loadClinicData(clinicKey)?.data || {}, industry)} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
+                        <FileText size={14} /> テキスト
+                      </button>
+                      <button onClick={() => exportAsJson(clinicKey, loadClinicData(clinicKey)?.data || {}, industry)} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
+                        <FileJson size={14} /> JSON
+                      </button>
+                      <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/clinic/${clinicKey}`); alert("URLをコピーしました"); }} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}>
+                        <Link2 size={14} /> URL共有
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
