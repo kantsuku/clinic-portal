@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import PrimaryInfoMeter from "./PrimaryInfoMeter";
 import RewriteButton from "./RewriteButton";
 
 export interface ChecklistCategory {
@@ -13,6 +12,7 @@ interface ChecklistInputProps {
   value: string;
   onChange: (value: string) => void;
   categories: ChecklistCategory[];
+  visibleCategories?: string[];
 }
 
 type ItemStatus = "none" | "yes" | "strength";
@@ -62,7 +62,12 @@ export default function ChecklistInput({
   value,
   onChange,
   categories,
+  visibleCategories,
 }: ChecklistInputProps) {
+  // Filter categories if visibleCategories is set (non-empty array)
+  const filteredCategories = visibleCategories && visibleCategories.length > 0
+    ? categories.filter((c) => visibleCategories.includes(c.name))
+    : categories;
   const [states, setStates] = useState<Record<string, ItemState>>(() => {
     const parsed = parseChecklist(value);
     // 全アイテムの初期状態を設定
@@ -111,7 +116,7 @@ export default function ChecklistInput({
     }));
   }
 
-  const currentCat = categories[activeTab];
+  const currentCat = filteredCategories[activeTab];
   const allDefinedItems = useMemo(() => new Set(categories.flatMap((c) => c.items)), [categories]);
   const customItems = useMemo(() => Object.keys(states).filter((k) => !allDefinedItems.has(k)), [states, allDefinedItems]);
   const yesCount = useMemo(() => Object.values(states).filter((s) => s.status === "yes" || s.status === "strength").length, [states]);
@@ -140,7 +145,7 @@ export default function ChecklistInput({
 
       {/* Tabs (wrap) */}
       <div className="flex flex-wrap gap-1.5">
-        {categories.map((cat, i) => {
+        {filteredCategories.map((cat, i) => {
           const catYes = cat.items.filter(
             (item) => states[item]?.status === "yes" || states[item]?.status === "strength"
           ).length;
@@ -242,10 +247,6 @@ export default function ChecklistInput({
                     title={item}
                     onRewrite={(rewritten) => setDetail(item, rewritten)}
                   />
-                  <PrimaryInfoMeter
-                    text={`${item} ${state.detail}`}
-                    onAppendText={(t) => setDetail(item, state.detail + t)}
-                  />
                 </div>
               )}
             </div>
@@ -333,7 +334,6 @@ export default function ChecklistInput({
                         onChange={(e) => setDetail(item, e.target.value)}
                       />
                       <RewriteButton text={state.detail} title={item} onRewrite={(r) => setDetail(item, r)} />
-                      <PrimaryInfoMeter text={`${item} ${state.detail}`} onAppendText={(t) => setDetail(item, state.detail + t)} />
                     </div>
                   )}
                 </div>

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { getEquipmentSuggestion } from "@/lib/suggestions";
-import PrimaryInfoMeter from "./PrimaryInfoMeter";
 import RewriteButton from "./RewriteButton";
 
 interface RepeaterInputProps {
@@ -398,12 +397,6 @@ export default function RepeaterInput({
               text={item.description}
               title={item.title}
               onRewrite={(rewritten) => updateItem(index, "description", rewritten)}
-            />
-            <PrimaryInfoMeter
-              text={`${item.title} ${item.description}`}
-              onAppendText={(appendText) =>
-                updateItem(index, "description", item.description + appendText)
-              }
             />
           </div>
         );

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from "react"
 import { saveClinicData } from "@/lib/storage"
-import { saveHearingData, saveSessionState } from "@/lib/actions/hearing-data"
+import { saveHearingData } from "@/lib/actions/hearing-data"
 import { showToast } from "@/components/Toast"
 import { getSections } from "@/lib/schema"
 
@@ -20,17 +20,26 @@ export function useAutoSave({ clinicId, data, clientUuid, industry, interval = 3
   const prevDataRef = useRef<string>("")
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const savingRef = useRef(false)
+  // Track initial data snapshot to prevent saving unchanged data
+  const initialDataRef = useRef<string>(JSON.stringify(data))
+  const hasUserEdited = useRef(false)
 
   useEffect(() => {
     const serialized = JSON.stringify(data)
     if (serialized !== prevDataRef.current) {
+      // Only mark dirty if data differs from initial load
+      if (serialized !== initialDataRef.current) {
+        hasUserEdited.current = true
+      }
       prevDataRef.current = serialized
-      setIsDirty(true)
+      if (hasUserEdited.current) {
+        setIsDirty(true)
+      }
     }
   }, [data])
 
   useEffect(() => {
-    if (!isDirty || !clinicId) return
+    if (!isDirty || !clinicId || !hasUserEdited.current) return
 
     if (timerRef.current) clearTimeout(timerRef.current)
 
@@ -75,7 +84,7 @@ export function useAutoSave({ clinicId, data, clientUuid, industry, interval = 3
 
   useEffect(() => {
     function handleBeforeUnload(e: BeforeUnloadEvent) {
-      if (isDirty && clinicId) {
+      if (isDirty && clinicId && hasUserEdited.current) {
         saveClinicData(clinicId, data)
         e.preventDefault()
       }

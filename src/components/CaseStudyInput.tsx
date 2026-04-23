@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import RewriteButton from "./RewriteButton";
-import PrimaryInfoMeter from "./PrimaryInfoMeter";
 
 interface CaseStudyInputProps {
   value: string;
@@ -292,10 +291,6 @@ export default function CaseStudyInput({ value, onChange }: CaseStudyInputProps)
                     </div>
                   ))}
 
-                  <PrimaryInfoMeter
-                    text={primaryText}
-                    onAppendText={(t) => updateCase(index, "why_this_plan", cs.why_this_plan + t)}
-                  />
                 </div>
 
                 <button

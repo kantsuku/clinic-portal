@@ -11,6 +11,8 @@ export interface HearingSession {
   lastSectionId: string | null
   progress: number
   status: "editing" | "completed" | "submitted"
+  step2Unlocked: boolean
+  visibleCategories: string[]
   updatedAt: string
 }
 
@@ -81,7 +83,7 @@ export async function loadHearingSession(
   const { data, error } = await supabase
     .schema("dnaos")
     .from("hearing_sessions")
-    .select("form_data, mission_draft, onboarding_done, last_section_id, progress, status, updated_at")
+    .select("form_data, mission_draft, onboarding_done, last_section_id, progress, status, step2_unlocked, visible_categories, updated_at")
     .eq("client_id", clientId)
     .maybeSingle()
 
@@ -94,8 +96,50 @@ export async function loadHearingSession(
     lastSectionId: data.last_section_id ?? null,
     progress: data.progress ?? 0,
     status: data.status as HearingSession["status"],
+    step2Unlocked: data.step2_unlocked ?? false,
+    visibleCategories: (data.visible_categories as string[]) ?? [],
     updatedAt: data.updated_at,
   }
+}
+
+// ── Toggle step2 lock ───────────────────────────────────────
+
+export async function setStep2Unlocked(
+  clientId: string,
+  unlocked: boolean,
+): Promise<{ ok: true } | { error: string }> {
+  const supabase = await createServerSupabase()
+
+  const { error } = await supabase
+    .schema("dnaos")
+    .from("hearing_sessions")
+    .upsert(
+      { client_id: clientId, step2_unlocked: unlocked },
+      { onConflict: "client_id" },
+    )
+
+  if (error) return { error: error.message }
+  return { ok: true }
+}
+
+// ── Save visible categories ─────────────────────────────────
+
+export async function setVisibleCategories(
+  clientId: string,
+  categories: string[],
+): Promise<{ ok: true } | { error: string }> {
+  const supabase = await createServerSupabase()
+
+  const { error } = await supabase
+    .schema("dnaos")
+    .from("hearing_sessions")
+    .upsert(
+      { client_id: clientId, visible_categories: categories },
+      { onConflict: "client_id" },
+    )
+
+  if (error) return { error: error.message }
+  return { ok: true }
 }
 
 // ── Submit to DNA OS Lite ───────────────────────────────────

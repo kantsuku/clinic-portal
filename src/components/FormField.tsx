@@ -11,7 +11,6 @@ import ToneMannerInput from "./ToneMannerInput";
 import StaffRepeater from "./StaffRepeater";
 import PriceTableInput from "./PriceTableInput";
 import CaseStudyInput from "./CaseStudyInput";
-import PrimaryInfoMeter from "./PrimaryInfoMeter";
 import RewriteButton from "./RewriteButton";
 import { showToast } from "./Toast";
 
@@ -21,9 +20,10 @@ interface FormFieldProps {
   onChange: (value: string) => void;
   /** 他フィールドの値を参照するため */
   allValues?: Record<string, string>;
+  visibleCategories?: string[];
 }
 
-export default function FormField({ field, value, onChange, allValues }: FormFieldProps) {
+export default function FormField({ field, value, onChange, allValues, visibleCategories }: FormFieldProps) {
   // 動的プレースホルダー: {{clinic_name}} を実際の医院名に置換
   const placeholder = field.placeholder?.replace(
     /{{(\w+)}}/g,
@@ -41,31 +41,70 @@ export default function FormField({ field, value, onChange, allValues }: FormFie
             <span style={{ color: "var(--md-error)" }} className="ml-1">*</span>
           )}
         </label>
-        {value?.trim() && (
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard.writeText(value);
-              showToast("コピーしました");
-            }}
-            className="text-[11px] px-2 py-1"
-            style={{
-              color: "var(--md-on-surface-variant)",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-            }}
-            aria-label="コピー"
-          >
-            <Copy size={16} />
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {value === "未定" ? (
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              className="text-[11px] px-2.5 py-1 font-medium"
+              style={{
+                background: "var(--md-secondary-container)",
+                color: "var(--md-on-secondary-container)",
+                borderRadius: "100px",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              未定を解除
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onChange("未定")}
+              className="text-[11px] px-2.5 py-1"
+              style={{
+                color: "var(--md-on-surface-variant)",
+                background: "transparent",
+                borderRadius: "100px",
+                border: "1px solid var(--md-outline-variant)",
+                cursor: "pointer",
+              }}
+            >
+              未定
+            </button>
+          )}
+          {value?.trim() && value !== "未定" && (
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(value);
+                showToast("コピーしました");
+              }}
+              className="text-[11px] px-2 py-1"
+              style={{
+                color: "var(--md-on-surface-variant)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+              }}
+              aria-label="コピー"
+            >
+              <Copy size={16} />
+            </button>
+          )}
+        </div>
       </div>
       {field.hint && (
         <p className="text-xs" style={{ color: "var(--md-on-surface-variant)" }}>
           {field.hint}
         </p>
       )}
+
+      {value === "未定" ? (
+        <div className="py-3 px-4 text-sm text-center" style={{ background: "var(--md-surface-container-high)", color: "var(--md-on-surface-variant)", borderRadius: "var(--md-shape-corner-md)" }}>
+          この項目は未定です
+        </div>
+      ) : <>
 
       {field.type === "text" && (
         <input
@@ -133,10 +172,6 @@ export default function FormField({ field, value, onChange, allValues }: FormFie
             text={value}
             title={field.label}
             onRewrite={onChange}
-          />
-          <PrimaryInfoMeter
-            text={value}
-            onAppendText={(appendText) => onChange(value + appendText)}
           />
         </>
       )}
@@ -207,6 +242,7 @@ export default function FormField({ field, value, onChange, allValues }: FormFie
           value={value}
           onChange={onChange}
           categories={field.checklistCategories}
+          visibleCategories={visibleCategories}
         />
       )}
 
@@ -220,6 +256,8 @@ export default function FormField({ field, value, onChange, allValues }: FormFie
           enableAiSuggest={field.enableAiSuggest}
         />
       )}
+
+      </>}
     </div>
   );
 }

@@ -1,34 +1,22 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { getSections, getSteps, type SectionDef, type StepDef } from "@/lib/schema";
 type IndustryType = "dental" | "corporate";
-import { getPonkoMessage } from "@/lib/ponko-messages";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Lock } from "lucide-react";
 import Icon from "./Icon";
-
-import { analyzePrimaryInfo, getScoreLabel } from "@/lib/primary-info-analyzer";
-import PrimaryInfoModal from "./PrimaryInfoModal";
 
 interface DashboardProps {
   values: Record<string, string>;
   onSelectSection: (sectionId: string) => void;
   industry?: IndustryType;
+  step2Unlocked?: boolean;
 }
 
-export default function Dashboard({ values, onSelectSection, industry }: DashboardProps) {
+export default function Dashboard({ values, onSelectSection, industry, step2Unlocked = false }: DashboardProps) {
   const sections = getSections(industry);
   const steps = getSteps(industry);
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [messageSeed, setMessageSeed] = useState(() => Math.floor(Math.random() * 1000));
 
-  // 8秒ごとにセリフを自動切り替え
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setMessageSeed((prev) => prev + 1);
-    }, 8000);
-    return () => clearInterval(timer);
-  }, []);
   const sectionStats = sections.map((section) => {
     const filled = section.fields.filter(
       (f) => values[f.name]?.trim()
@@ -43,75 +31,18 @@ export default function Dashboard({ values, onSelectSection, industry }: Dashboa
   const overallPct =
     totalFields > 0 ? Math.round((totalFilled / totalFields) * 100) : 0;
 
-  // 各テキストフィールドを個別に分析して累計
-  const { primaryInfoScore, sectionPrimaryScores } = useMemo(() => {
-    let totalScore = 0;
-    let totalFields = 0;
-
-    const sectionScores = sections.map((section) => {
-      const textFields = section.fields.filter(
-        (f) => f.type === "textarea" || f.type === "repeater"
-      );
-      let sectionTotal = 0;
-      let sectionCount = 0;
-
-      for (const field of textFields) {
-        const val = values[field.name] || "";
-        if (val.trim().length < 10) continue;
-        const result = analyzePrimaryInfo(val);
-        sectionTotal += result.score;
-        sectionCount++;
-        totalScore += result.score;
-        totalFields++;
-      }
-
-      return {
-        section,
-        score: sectionCount > 0 ? Math.round(sectionTotal / sectionCount) : null,
-      };
-    });
-
-    return {
-      primaryInfoScore: totalFields > 0 ? Math.round(totalScore / totalFields) : 0,
-      sectionPrimaryScores: sectionScores,
-    };
-  }, [values]);
-
-  const primaryLabel = getScoreLabel(primaryInfoScore);
-
   return (
     <div className="max-w-lg mx-auto">
-      {/* Header with Ponko */}
+      {/* Header */}
       <div className="text-center mb-6 pt-2">
         <img
           src="/ponko.png"
-          alt="ぽん子"
-          className="w-20 h-20 mx-auto mb-3 ponko-jump cursor-pointer"
-          role="button"
-          aria-label="ぽん子のセリフを切り替える"
-          onClick={() => setMessageSeed(Math.floor(Math.random() * 1000))}
+          alt="Clinic Portal"
+          className="w-16 h-16 mx-auto mb-3"
         />
         <h1 className="text-[22px] font-medium tracking-tight mb-1" style={{ color: "var(--md-on-surface)" }}>
-          Clinic Portal <span className="font-normal text-sm" style={{ color: "var(--md-on-surface-variant)" }}>by Ponko</span>
+          Clinic Portal
         </h1>
-        <div
-          className="inline-block mt-2 px-4 py-2.5 text-sm text-left max-w-xs cursor-pointer"
-          style={{
-            background: "var(--md-surface-container)",
-            borderRadius: "var(--md-shape-corner-lg)",
-            boxShadow: "var(--md-elevation-1)",
-            color: "var(--md-on-surface)",
-          }}
-          onClick={() => setMessageSeed(Math.floor(Math.random() * 1000))}
-        >
-          <p>{getPonkoMessage(overallPct, messageSeed)}</p>
-        </div>
-        <p
-          className="text-[11px] mt-1.5"
-          style={{ color: "var(--md-on-surface-variant)", }}
-        >
-          タップでぽん子が別のことを言うよ
-        </p>
       </div>
 
       {/* Overall progress card */}
@@ -150,139 +81,71 @@ export default function Dashboard({ values, onSelectSection, industry }: Dashboa
           {totalFilled} / {totalFields} 項目入力済み
         </p>
 
-        {/* 全体の一次情報スコア */}
-        {primaryInfoScore > 0 && (
-          <div
-            className="mt-3 p-2.5"
-            style={{
-              background: "var(--md-surface-container)",
-              borderRadius: "var(--md-shape-corner-md)",
-            }}
-          >
-            <div className="flex items-center gap-2.5">
-              <img src="/ponko.png" alt="ぽん子" className="w-7 h-7 shrink-0" />
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-medium" style={{ color: primaryLabel.color }}>
-                    一次情報スコア
-                  </span>
-                  <span className="text-xs font-bold" style={{ color: primaryLabel.color }}>
-                    {primaryInfoScore}%
-                  </span>
-                </div>
-                <div
-                  className="h-1.5 overflow-hidden"
-                  style={{ background: "var(--md-outline-variant)", borderRadius: "100px" }}
-                >
-                  <div
-                    className="h-full transition-all duration-500"
-                    style={{
-                      width: `${primaryInfoScore}%`,
-                      background: primaryLabel.color,
-                      borderRadius: "100px",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowInfoModal(true)}
-              className="w-full mt-2.5 py-2 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
-              style={{
-                background: "var(--md-primary)",
-                color: "var(--md-on-primary)",
-                borderRadius: "100px",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              <img src="/ponko.png" alt="" className="w-4 h-4" />
-              一次情報ってなに？
-            </button>
-          </div>
-        )}
-
-        {/* 未入力時でもボタンを表示 */}
-        {primaryInfoScore === 0 && totalFilled > 0 && (
-          <button
-            onClick={() => setShowInfoModal(true)}
-            className="w-full mt-3 py-2.5 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
-            style={{
-              background: "var(--md-surface-container)",
-              color: "var(--md-primary)",
-              borderRadius: "100px",
-              border: "1px solid var(--md-outline)",
-              cursor: "pointer",
-            }}
-          >
-            <img src="/ponko.png" alt="" className="w-4 h-4" />
-            一次情報ってなに？大事なので読んでね！
-          </button>
-        )}
       </div>
-
-      {/* Info modal */}
-      <PrimaryInfoModal open={showInfoModal} onClose={() => setShowInfoModal(false)} />
 
       {/* Section cards grouped by step */}
       {steps.map((stepDef) => {
         const stepSections = sectionStats.filter((s) => s.section.step === stepDef.step);
         if (stepSections.length === 0) return null;
 
+        const isLocked = stepDef.step === 2 && !step2Unlocked;
+
         return (
           <div key={stepDef.step} className="mb-6">
             {/* Step header */}
             <div className="flex items-center gap-3 mb-3">
               <span
-                className="text-xs font-bold px-2.5 py-1"
+                className="text-xs font-bold px-2.5 py-1 flex items-center gap-1"
                 style={{
-                  background: stepDef.step === 0 ? "var(--md-on-surface-variant)" : stepDef.step === 1 ? "var(--md-primary)" : "var(--md-secondary)",
-                  color: "var(--md-on-primary)",
+                  background: isLocked ? "var(--md-outline-variant)" : stepDef.step === 0 ? "var(--md-on-surface-variant)" : stepDef.step === 1 ? "var(--md-primary)" : "var(--md-secondary)",
+                  color: isLocked ? "var(--md-on-surface-variant)" : "var(--md-on-primary)",
                   borderRadius: "100px",
                 }}
               >
+                {isLocked && <Lock size={12} />}
                 {stepDef.title}
               </span>
               <span className="text-xs" style={{ color: "var(--md-on-surface-variant)" }}>
-                {stepDef.description}
+                {isLocked ? "担当者が確認後に解放されます" : stepDef.description}
               </span>
             </div>
 
             {/* Cards */}
-            <div className="space-y-2">
+            <div className="space-y-2" style={isLocked ? { opacity: 0.45, pointerEvents: "none" } : undefined}>
               {stepSections.map(({ section, filled, total, pct }) => {
-                const sectionPrimary = sectionPrimaryScores.find((s) => s.section.id === section.id);
-                const sp = sectionPrimary?.score !== null && sectionPrimary?.score !== undefined
-                  ? getScoreLabel(sectionPrimary.score)
-                  : null;
-
                 return (
-                  <button
+                  <div
                     key={section.id}
-                    onClick={() => onSelectSection(section.id)}
-                    className="w-full text-left md-state-layer"
+                    className="w-full text-left relative"
                     style={{
                       background: "var(--md-surface-container)",
                       borderRadius: "var(--md-shape-corner-lg)",
                       boxShadow: "var(--md-elevation-1)",
                       padding: "16px 20px",
                       border: "none",
-                      cursor: "pointer",
+                      cursor: isLocked ? "not-allowed" : "pointer",
                       transition: "box-shadow 0.2s",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--md-elevation-2)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--md-elevation-1)")}
+                    onClick={() => !isLocked && onSelectSection(section.id)}
+                    role={isLocked ? undefined : "button"}
+                    tabIndex={isLocked ? -1 : 0}
                   >
+                    {isLocked && (
+                      <div className="absolute inset-0 flex items-center justify-center" style={{ borderRadius: "var(--md-shape-corner-lg)", zIndex: 1 }}>
+                        <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(135deg, transparent, transparent 10px, var(--md-outline-variant) 10px, var(--md-outline-variant) 11px)", borderRadius: "var(--md-shape-corner-lg)", opacity: 0.3 }} />
+                        <Lock size={24} style={{ color: "var(--md-on-surface-variant)", position: "relative", zIndex: 2 }} />
+                      </div>
+                    )}
                     <div className="flex items-center gap-4">
                       <div
                         className="w-10 h-10 flex items-center justify-center shrink-0"
                         style={{
-                          background: pct === 100 ? "var(--md-tertiary-container)" : "var(--md-secondary-container)",
-                          color: pct === 100 ? "var(--md-tertiary)" : "var(--md-on-surface-variant)",
+                          background: isLocked ? "var(--md-surface-container-high)" : pct === 100 ? "var(--md-tertiary-container)" : "var(--md-secondary-container)",
+                          color: isLocked ? "var(--md-on-surface-variant)" : pct === 100 ? "var(--md-tertiary)" : "var(--md-on-surface-variant)",
                           borderRadius: "var(--md-shape-corner-md)",
                         }}
                       >
-                        <Icon name={section.icon} size={20} />
+                        {isLocked ? <Lock size={20} /> : <Icon name={section.icon} size={20} />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1.5">
@@ -320,49 +183,14 @@ export default function Dashboard({ values, onSelectSection, industry }: Dashboa
                           />
                         </div>
 
-                        {sp && sectionPrimary?.score != null && (
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            <img src="/ponko.png" alt="" className="w-3.5 h-3.5" />
-                            <span className="text-[11px]" style={{ color: "var(--md-on-surface-variant)" }}>
-                              一次情報
-                            </span>
-                            <div
-                              className="flex-1 h-1 overflow-hidden"
-                              style={{ background: "var(--md-outline-variant)", borderRadius: "100px" }}
-                            >
-                              <div
-                                className="h-full transition-all duration-300"
-                                style={{
-                                  width: `${sectionPrimary.score}%`,
-                                  background: sp.color,
-                                  borderRadius: "100px",
-                                }}
-                              />
-                            </div>
-                            <span className="text-[11px] font-bold" style={{ color: sp.color }}>
-                              {sectionPrimary.score}%
-                            </span>
-                          </div>
-                        )}
-
-                        {!sp && filled > 0 && (
-                          <p
-                            className="text-[11px] mt-1 flex items-center gap-1"
-                            style={{ color: "var(--md-on-surface-variant)" }}
-                            onClick={(e) => { e.stopPropagation(); setShowInfoModal(true); }}
-                          >
-                            <img src="/ponko.png" alt="" className="w-3.5 h-3.5" />
-                            一次情報を入れるともっと良くなりますよ！
-                          </p>
-                        )}
                       </div>
-                      <ChevronRight
+                      {!isLocked && <ChevronRight
                         size={20}
                         className="shrink-0"
                         style={{ color: "var(--md-on-surface-variant)" }}
-                      />
+                      />}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
