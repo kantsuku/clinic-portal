@@ -229,6 +229,8 @@ export default function ClinicEditor({ clinic, initialData, initialSession }: Cl
             onSelectSection={handleSectionChange}
             industry={industry}
             step2Unlocked={initialSession?.step2Unlocked}
+            unlockedSteps={initialSession?.unlockedSteps}
+            onOpenMissionBuilder={() => setShowMission(true)}
           />
         )}
       </main>

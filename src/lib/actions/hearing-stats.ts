@@ -9,6 +9,7 @@ export interface HearingStats {
   updated_at: string | null
   form_data: Record<string, string> | null
   step2_unlocked: boolean
+  unlocked_steps: number[]
   visible_categories: string[]
 }
 
@@ -18,7 +19,7 @@ export async function getHearingStats(): Promise<HearingStats[]> {
   const { data, error } = await supabase
     .schema("dnaos")
     .from("hearing_sessions")
-    .select("client_id, progress, status, updated_at, form_data, step2_unlocked, visible_categories")
+    .select("client_id, progress, status, updated_at, form_data, step2_unlocked, unlocked_steps, visible_categories")
 
   if (error || !data) return []
   return data.map((d) => ({
@@ -28,6 +29,7 @@ export async function getHearingStats(): Promise<HearingStats[]> {
     updated_at: d.updated_at,
     form_data: (d.form_data as Record<string, string>) || null,
     step2_unlocked: d.step2_unlocked ?? false,
+    unlocked_steps: (d.unlocked_steps as number[]) ?? [0],
     visible_categories: (d.visible_categories as string[]) ?? [],
   }))
 }

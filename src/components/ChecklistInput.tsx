@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import RewriteButton from "./RewriteButton";
 
 export interface ChecklistCategory {
@@ -47,7 +47,9 @@ function serializeChecklist(states: Record<string, ItemState>): string {
     .map(([item, s]) => {
       const statusLabel = s.status === "strength" ? "こだわりあり" : "対応";
       const header = `【${item}】${statusLabel}`;
-      return s.detail ? `${header}\n>${s.detail}` : header;
+      if (!s.detail) return header;
+      const prefixed = s.detail.split("\n").map((l) => `>${l}`).join("\n");
+      return `${header}\n${prefixed}`;
     })
     .join("\n\n");
 }
@@ -81,6 +83,7 @@ export default function ChecklistInput({
   });
 
   const [activeTab, setActiveTab] = useState(0);
+  const safeActiveTab = activeTab >= filteredCategories.length ? 0 : activeTab;
   const [customInput, setCustomInput] = useState("");
 
   function addCustomItem() {
@@ -98,7 +101,9 @@ export default function ChecklistInput({
     setCustomInput("");
   }
 
+  const mountedRef = useRef(false);
   useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
     onChange(serializeChecklist(states));
   }, [states]);
 
@@ -116,7 +121,7 @@ export default function ChecklistInput({
     }));
   }
 
-  const currentCat = filteredCategories[activeTab];
+  const currentCat = filteredCategories[safeActiveTab];
   const allDefinedItems = useMemo(() => new Set(categories.flatMap((c) => c.items)), [categories]);
   const customItems = useMemo(() => Object.keys(states).filter((k) => !allDefinedItems.has(k)), [states, allDefinedItems]);
   const yesCount = useMemo(() => Object.values(states).filter((s) => s.status === "yes" || s.status === "strength").length, [states]);
@@ -155,10 +160,10 @@ export default function ChecklistInput({
               onClick={() => setActiveTab(i)}
               className="text-xs font-medium px-3 py-2 transition-colors"
               style={{
-                background: i === activeTab ? "var(--md-primary)" : "var(--md-surface-container)",
-                color: i === activeTab ? "var(--md-on-primary)" : "var(--md-on-surface-variant)",
+                background: i === safeActiveTab ? "var(--md-primary)" : "var(--md-surface-container)",
+                color: i === safeActiveTab ? "var(--md-on-primary)" : "var(--md-on-surface-variant)",
                 borderRadius: "100px",
-                border: i === activeTab ? "none" : "1px solid var(--md-outline-variant)",
+                border: i === safeActiveTab ? "none" : "1px solid var(--md-outline-variant)",
                 cursor: "pointer",
               }}
             >

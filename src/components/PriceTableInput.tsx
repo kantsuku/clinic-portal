@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface PriceTableInputProps {
   value: string;
@@ -34,7 +34,8 @@ export default function PriceTableInput({ value, onChange }: PriceTableInputProp
     return parsed.length > 0 ? parsed : [];
   });
 
-  useEffect(() => { onChange(serializeTable(categories)); }, [categories]);
+  const mountedRef = useRef(false);
+  useEffect(() => { if (!mountedRef.current) { mountedRef.current = true; return; } onChange(serializeTable(categories)); }, [categories]);
 
   function addCategory(name: string = "") {
     setCategories((prev) => [...prev, { name, items: [{ name: "", price: "", note: "" }] }]);

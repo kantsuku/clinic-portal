@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import RewriteButton from "./RewriteButton";
 
 interface CaseStudyInputProps {
@@ -116,7 +116,8 @@ export default function CaseStudyInput({ value, onChange }: CaseStudyInputProps)
   });
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
-  useEffect(() => { onChange(serializeCases(cases)); }, [cases]);
+  const mountedRef = useRef(false);
+  useEffect(() => { if (!mountedRef.current) { mountedRef.current = true; return; } onChange(serializeCases(cases)); }, [cases]);
 
   function updateCase(index: number, field: keyof CaseStudy, val: string) {
     setCases((prev) => prev.map((c, i) => (i === index ? { ...c, [field]: val } : c)));

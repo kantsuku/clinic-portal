@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { getSections, getSteps, type SectionDef, type StepDef } from "@/lib/schema";
 type IndustryType = "dental" | "corporate";
-import { ChevronRight, Lock } from "lucide-react";
+import { ChevronRight, Lock, Sparkles } from "lucide-react";
 import Icon from "./Icon";
 
 interface DashboardProps {
@@ -11,9 +11,12 @@ interface DashboardProps {
   onSelectSection: (sectionId: string) => void;
   industry?: IndustryType;
   step2Unlocked?: boolean;
+  unlockedSteps?: number[];
+  onOpenMissionBuilder?: () => void;
 }
 
-export default function Dashboard({ values, onSelectSection, industry, step2Unlocked = false }: DashboardProps) {
+export default function Dashboard({ values, onSelectSection, industry, step2Unlocked = false, unlockedSteps, onOpenMissionBuilder }: DashboardProps) {
+  const effectiveUnlockedSteps = unlockedSteps ?? (step2Unlocked ? [0, 1, 2] : [0]);
   const sections = getSections(industry);
   const steps = getSteps(industry);
 
@@ -83,12 +86,49 @@ export default function Dashboard({ values, onSelectSection, industry, step2Unlo
 
       </div>
 
+      {/* MISSION WAY banner */}
+      {onOpenMissionBuilder && (
+        <div
+          className="mb-6 p-4 cursor-pointer transition-all"
+          style={{
+            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+            borderRadius: "var(--md-shape-corner-xl)",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+          onClick={onOpenMissionBuilder}
+          role="button"
+          tabIndex={0}
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className="w-12 h-12 flex items-center justify-center shrink-0"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                borderRadius: "var(--md-shape-corner-lg)",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <Sparkles size={22} style={{ color: "#e2b04a" }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold tracking-wide" style={{ color: "#e2b04a" }}>
+                MISSION WAY
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>
+                AIと一緒に医院の理念を言語化しましょう
+              </p>
+            </div>
+            <ChevronRight size={20} className="shrink-0" style={{ color: "rgba(255,255,255,0.3)" }} />
+          </div>
+        </div>
+      )}
+
       {/* Section cards grouped by step */}
       {steps.map((stepDef) => {
         const stepSections = sectionStats.filter((s) => s.section.step === stepDef.step);
         if (stepSections.length === 0) return null;
 
-        const isLocked = stepDef.step === 2 && !step2Unlocked;
+        const isLocked = !effectiveUnlockedSteps.includes(stepDef.step);
 
         return (
           <div key={stepDef.step} className="mb-6">

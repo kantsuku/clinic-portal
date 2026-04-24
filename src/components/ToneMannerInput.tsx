@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export interface ToneCategory {
   name: string;
@@ -50,7 +50,9 @@ export default function ToneMannerInput({
   });
   const [customInputs, setCustomInputs] = useState<Record<string, string>>({});
 
+  const mountedRef = useRef(false);
   useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
     onChange(serializeTone(data));
   }, [data]);
 

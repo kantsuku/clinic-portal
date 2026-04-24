@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface StaffRepeaterProps {
   value: string;
@@ -56,7 +56,9 @@ export default function StaffRepeater({ value, onChange }: StaffRepeaterProps) {
   });
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
+  const mountedRef = useRef(false);
   useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
     onChange(serializeStaff(staff));
   }, [staff]);
 

@@ -5,7 +5,7 @@ import type { HearingStats } from "@/lib/actions/hearing-stats"
 import { getSections } from "@/lib/schema"
 import { exportAsText, exportAsJson } from "@/lib/export"
 import { buildFieldMappings } from "@/lib/dnaos-mapping"
-import { submitToDnaOsLite, setStep2Unlocked, setVisibleCategories } from "@/lib/actions/hearing-data"
+import { submitToDnaOsLite, setStep2Unlocked, setUnlockedSteps, setVisibleCategories } from "@/lib/actions/hearing-data"
 import type { ClinicMaster } from "@/lib/actions/clinics"
 import {
   ChevronDown, ChevronUp, ArrowLeft, Upload, Send, Check, Loader2,
@@ -36,6 +36,7 @@ interface ClinicStats {
   hearingStatus: string | null
   hearingUpdatedAt: string | null
   step2Unlocked: boolean
+  unlockedSteps: number[]
   visibleCategories: string[]
 }
 
@@ -51,6 +52,8 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
   const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({})
   const [step2Overrides, setStep2Overrides] = useState<Record<string, boolean>>({})
   const [step2Toggling, setStep2Toggling] = useState<Set<string>>(new Set())
+  const [stepsOverrides, setStepsOverrides] = useState<Record<string, number[]>>({})
+  const [stepsToggling, setStepsToggling] = useState<Set<string>>(new Set())
   const [categoriesOverrides, setCategoriesOverrides] = useState<Record<string, string[]>>({})
   const [categoriesSaving, setCategoriesSaving] = useState<Set<string>>(new Set())
   const [showCategories, setShowCategories] = useState<Set<string>>(new Set())
@@ -79,7 +82,7 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
       return {
         clinic, totalFields: allFields.length, filledFields: filled, progressPct: pct,
         emptySections, formData, hearingStatus: hearing?.status || null,
-        hearingUpdatedAt: hearing?.updated_at || null, step2Unlocked: hearing?.step2_unlocked ?? false, visibleCategories: hearing?.visible_categories ?? [],
+        hearingUpdatedAt: hearing?.updated_at || null, step2Unlocked: hearing?.step2_unlocked ?? false, unlockedSteps: (hearing?.unlocked_steps as number[]) ?? [0], visibleCategories: hearing?.visible_categories ?? [],
       }
     }).sort((a, b) => b.progressPct - a.progressPct)
   }, [clinics, hearingMap])
@@ -111,6 +114,17 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
     if ("ok" in result) setStep2Overrides((prev) => ({ ...prev, [clinicId]: newVal }))
     setStep2Toggling((prev) => { const n = new Set(prev); n.delete(clinicId); return n })
   }, [step2Toggling])
+
+  const handleStepToggle = useCallback(async (clinicId: string, step: number, currentSteps: number[]) => {
+    if (stepsToggling.has(clinicId)) return
+    setStepsToggling((prev) => new Set(prev).add(clinicId))
+    const newSteps = currentSteps.includes(step)
+      ? currentSteps.filter((s) => s !== step)
+      : [...currentSteps, step].sort()
+    const result = await setUnlockedSteps(clinicId, newSteps)
+    if ("ok" in result) setStepsOverrides((prev) => ({ ...prev, [clinicId]: newSteps }))
+    setStepsToggling((prev) => { const n = new Set(prev); n.delete(clinicId); return n })
+  }, [stepsToggling])
 
   return (
     <main className="px-4 py-8 sm:py-12 max-w-2xl mx-auto">
@@ -160,6 +174,8 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
           const isExpanded = expandedId === clinic.id
           const isStep2Unlocked = step2Overrides[clinic.id] ?? clinicStat.step2Unlocked
           const isStep2Toggling = step2Toggling.has(clinic.id)
+          const currentUnlockedSteps = stepsOverrides[clinic.id] ?? clinicStat.unlockedSteps
+          const isStepsToggling = stepsToggling.has(clinic.id)
 
           return (
             <div key={clinic.id} className="overflow-hidden" style={{ background: "var(--md-surface-container)", borderRadius: "var(--md-shape-corner-lg)", boxShadow: "var(--md-elevation-1)" }}>
@@ -199,28 +215,36 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
 
               {isExpanded && (
                 <div className="px-4 pb-4 space-y-3" style={{ borderTop: "1px solid var(--md-outline-variant)" }}>
-                  {/* Step2 lock toggle */}
-                  <div className="pt-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {isStep2Unlocked ? <Unlock size={16} style={{ color: "var(--md-tertiary)" }} /> : <Lock size={16} style={{ color: "var(--md-on-surface-variant)" }} />}
-                      <span className="text-xs font-medium" style={{ color: isStep2Unlocked ? "var(--md-tertiary)" : "var(--md-on-surface-variant)" }}>
-                        Step2 {isStep2Unlocked ? "解放中" : "ロック中"}
-                      </span>
+                  {/* Step lock toggles */}
+                  <div className="pt-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Lock size={14} style={{ color: "var(--md-on-surface-variant)" }} />
+                      <span className="text-xs font-medium" style={{ color: "var(--md-on-surface-variant)" }}>フェーズロック</span>
                     </div>
-                    <button
-                      onClick={() => handleStep2Toggle(clinic.id, isStep2Unlocked)}
-                      disabled={isStep2Toggling}
-                      className="text-xs font-medium px-3 py-1.5"
-                      style={{
-                        background: isStep2Unlocked ? "var(--md-surface-container-low)" : "var(--md-tertiary)",
-                        color: isStep2Unlocked ? "var(--md-on-surface)" : "var(--md-on-primary)",
-                        borderRadius: "100px",
-                        border: isStep2Unlocked ? "1px solid var(--md-outline-variant)" : "none",
-                        cursor: isStep2Toggling ? "wait" : "pointer",
-                      }}
-                    >
-                      {isStep2Toggling ? <Loader2 size={12} className="animate-spin inline" /> : isStep2Unlocked ? "ロックする" : "解放する"}
-                    </button>
+                    <div className="flex gap-1.5">
+                      {getSections(industry).reduce<number[]>((acc, s) => acc.includes(s.step) ? acc : [...acc, s.step], []).map((step) => {
+                        const isUnlocked = currentUnlockedSteps.includes(step)
+                        const stepLabels = ["はじめに", "Step1", "Step2"]
+                        return (
+                          <button
+                            key={step}
+                            onClick={() => handleStepToggle(clinic.id, step, currentUnlockedSteps)}
+                            disabled={isStepsToggling}
+                            className="text-[11px] font-medium px-3 py-1.5 flex items-center gap-1"
+                            style={{
+                              background: isUnlocked ? "var(--md-tertiary-container)" : "var(--md-surface-container-high)",
+                              color: isUnlocked ? "var(--md-tertiary)" : "var(--md-on-surface-variant)",
+                              borderRadius: "100px",
+                              border: isUnlocked ? "1px solid var(--md-tertiary)" : "1px solid var(--md-outline-variant)",
+                              cursor: isStepsToggling ? "wait" : "pointer",
+                            }}
+                          >
+                            {isUnlocked ? <Unlock size={10} /> : <Lock size={10} />}
+                            {stepLabels[step] || `Step${step}`}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
 
                   {/* Treatment category selector */}

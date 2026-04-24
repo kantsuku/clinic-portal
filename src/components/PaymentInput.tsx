@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const PAYMENT_OPTIONS = [
   { key: "credit", label: "クレジットカード", hasDetail: true, detailLabel: "使える銘柄" },
@@ -52,7 +52,9 @@ function serializePayment(data: Record<string, PaymentState>): string {
 export default function PaymentInput({ value, onChange }: PaymentInputProps) {
   const [data, setData] = useState(() => parsePayment(value));
 
+  const mountedRef = useRef(false);
   useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
     onChange(serializePayment(data));
   }, [data]);
 

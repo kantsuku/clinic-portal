@@ -12,6 +12,7 @@ export interface HearingSession {
   progress: number
   status: "editing" | "completed" | "submitted"
   step2Unlocked: boolean
+  unlockedSteps: number[]
   visibleCategories: string[]
   updatedAt: string
 }
@@ -24,12 +25,34 @@ export async function saveHearingData(
   clientId: string,
   formData: Record<string, string>,
   progress?: number,
+  changedFields?: string[] | Set<string>,
 ): Promise<{ ok: true } | { error: string }> {
   const supabase = await createServerSupabase()
 
+  let mergedData = formData
+
+  // Field-level merge when we know which fields this client changed
+  const changedSet = changedFields instanceof Set ? changedFields : new Set(changedFields || [])
+  if (changedSet.size > 0) {
+    const { data: existing } = await supabase
+      .schema("dnaos")
+      .from("hearing_sessions")
+      .select("form_data")
+      .eq("client_id", clientId)
+      .maybeSingle()
+
+    if (existing?.form_data) {
+      const serverData = existing.form_data as Record<string, string>
+      mergedData = { ...serverData }
+      for (const key of changedSet) {
+        mergedData[key] = formData[key] ?? ""
+      }
+    }
+  }
+
   const updates: Record<string, unknown> = {
     client_id: clientId,
-    form_data: formData,
+    form_data: mergedData,
     status: "editing",
   }
   if (progress !== undefined) {
@@ -58,7 +81,16 @@ export async function saveSessionState(
 ): Promise<{ ok: true } | { error: string }> {
   const supabase = await createServerSupabase()
 
+  // Check if row exists first to avoid creating sparse rows with null form_data
+  const { data: existing } = await supabase
+    .schema("dnaos")
+    .from("hearing_sessions")
+    .select("client_id")
+    .eq("client_id", clientId)
+    .maybeSingle()
+
   const updates: Record<string, unknown> = { client_id: clientId }
+  if (!existing) updates.form_data = {} // prevent null form_data on new rows
   if (state.missionDraft !== undefined) updates.mission_draft = state.missionDraft
   if (state.onboardingDone !== undefined) updates.onboarding_done = state.onboardingDone
   if (state.lastSectionId !== undefined) updates.last_section_id = state.lastSectionId
@@ -83,7 +115,7 @@ export async function loadHearingSession(
   const { data, error } = await supabase
     .schema("dnaos")
     .from("hearing_sessions")
-    .select("form_data, mission_draft, onboarding_done, last_section_id, progress, status, step2_unlocked, visible_categories, updated_at")
+    .select("form_data, mission_draft, onboarding_done, last_section_id, progress, status, step2_unlocked, unlocked_steps, visible_categories, updated_at")
     .eq("client_id", clientId)
     .maybeSingle()
 
@@ -97,6 +129,7 @@ export async function loadHearingSession(
     progress: data.progress ?? 0,
     status: data.status as HearingSession["status"],
     step2Unlocked: data.step2_unlocked ?? false,
+    unlockedSteps: (data.unlocked_steps as number[]) ?? [0],
     visibleCategories: (data.visible_categories as string[]) ?? [],
     updatedAt: data.updated_at,
   }
@@ -115,6 +148,26 @@ export async function setStep2Unlocked(
     .from("hearing_sessions")
     .upsert(
       { client_id: clientId, step2_unlocked: unlocked },
+      { onConflict: "client_id" },
+    )
+
+  if (error) return { error: error.message }
+  return { ok: true }
+}
+
+// ── Toggle step lock ────────────────────────────────────────
+
+export async function setUnlockedSteps(
+  clientId: string,
+  steps: number[],
+): Promise<{ ok: true } | { error: string }> {
+  const supabase = await createServerSupabase()
+
+  const { error } = await supabase
+    .schema("dnaos")
+    .from("hearing_sessions")
+    .upsert(
+      { client_id: clientId, unlocked_steps: steps },
       { onConflict: "client_id" },
     )
 

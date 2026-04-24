@@ -4,7 +4,7 @@ import { useState, useCallback } from "react"
 import type { TreatmentCategory, Subcategory } from "@/lib/actions/treatment-categories"
 import { bulkSaveTreatmentCategories, updateTreatmentSubcategories } from "@/lib/actions/treatment-categories"
 import {
-  ArrowLeft, Loader2, Sparkles, Plus, Trash2, GripVertical, Check, ChevronDown, ChevronUp, Save, X,
+  ArrowLeft, Loader2, Sparkles, Plus, Trash2, Check, ChevronDown, ChevronUp, Save, X,
 } from "lucide-react"
 
 interface SchemaCategory {
@@ -189,6 +189,20 @@ export default function TreatmentEditorClient({ initialCategories, schemaCategor
     setEditSubs((prev) => prev.map((s, i) =>
       i === subIdx ? { ...s, items: s.items.filter((_, j) => j !== itemIdx) } : s
     ))
+    setDirty(true)
+  }
+
+  function moveItem(subIdx: number, itemIdx: number, direction: "up" | "down") {
+    const newIdx = direction === "up" ? itemIdx - 1 : itemIdx + 1
+    setEditSubs((prev) => prev.map((s, i) => {
+      if (i !== subIdx) return s
+      const items = [...s.items]
+      if (newIdx < 0 || newIdx >= items.length) return s
+      const tmp = items[itemIdx]
+      items[itemIdx] = items[newIdx]
+      items[newIdx] = tmp
+      return { ...s, items }
+    }))
     setDirty(true)
   }
 
@@ -386,7 +400,14 @@ export default function TreatmentEditorClient({ initialCategories, schemaCategor
                     <div className="space-y-1">
                       {sub.items.map((item, itemIdx) => (
                         <div key={itemIdx} className="flex items-center gap-1.5">
-                          <GripVertical size={12} style={{ color: "var(--md-outline-variant)", flexShrink: 0 }} />
+                          <div className="flex flex-col gap-0" style={{ flexShrink: 0 }}>
+                            <button onClick={() => moveItem(subIdx, itemIdx, "up")} disabled={itemIdx === 0} className="p-0" style={{ background: "transparent", border: "none", cursor: itemIdx === 0 ? "default" : "pointer", opacity: itemIdx === 0 ? 0.3 : 1, color: "var(--md-on-surface-variant)", lineHeight: 0 }}>
+                              <ChevronUp size={10} />
+                            </button>
+                            <button onClick={() => moveItem(subIdx, itemIdx, "down")} disabled={itemIdx === sub.items.length - 1} className="p-0" style={{ background: "transparent", border: "none", cursor: itemIdx === sub.items.length - 1 ? "default" : "pointer", opacity: itemIdx === sub.items.length - 1 ? 0.3 : 1, color: "var(--md-on-surface-variant)", lineHeight: 0 }}>
+                              <ChevronDown size={10} />
+                            </button>
+                          </div>
                           <input
                             type="text"
                             value={item}

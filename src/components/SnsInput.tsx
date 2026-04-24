@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const SNS_PLATFORMS = [
   { key: "line", label: "LINE", placeholder: "LINE公式アカウントURL" },
@@ -42,7 +42,9 @@ function serializeSns(data: Record<string, string>): string {
 export default function SnsInput({ value, onChange }: SnsInputProps) {
   const [data, setData] = useState(() => parseSns(value));
 
+  const mountedRef = useRef(false);
   useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
     onChange(serializeSns(data));
   }, [data]);
 

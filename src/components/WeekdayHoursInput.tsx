@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const WEEKDAYS = ["月曜", "火曜", "水曜", "木曜", "金曜", "土曜", "日曜", "祝日"];
 
@@ -53,7 +53,9 @@ function serializeSchedule(schedule: Record<string, DaySchedule>): string {
 export default function WeekdayHoursInput({ value, onChange }: WeekdayHoursInputProps) {
   const [schedule, setSchedule] = useState(() => parseSchedule(value));
 
+  const mountedRef = useRef(false);
   useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
     onChange(serializeSchedule(schedule));
   }, [schedule]);
 

@@ -21,15 +21,20 @@ export function useAutoSave({ clinicId, data, clientUuid, industry, interval = 3
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const savingRef = useRef(false)
   // Track initial data snapshot to prevent saving unchanged data
-  const initialDataRef = useRef<string>(JSON.stringify(data))
+  const initialDataRef = useRef<Record<string, string>>({ ...data })
   const hasUserEdited = useRef(false)
+  // Track which fields have been changed by this client (for merge)
+  const changedFieldsRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     const serialized = JSON.stringify(data)
     if (serialized !== prevDataRef.current) {
-      // Only mark dirty if data differs from initial load
-      if (serialized !== initialDataRef.current) {
-        hasUserEdited.current = true
+      // Detect which fields changed from initial
+      for (const [key, val] of Object.entries(data)) {
+        if (val !== initialDataRef.current[key]) {
+          changedFieldsRef.current.add(key)
+          hasUserEdited.current = true
+        }
       }
       prevDataRef.current = serialized
       if (hasUserEdited.current) {
@@ -44,7 +49,12 @@ export function useAutoSave({ clinicId, data, clientUuid, industry, interval = 3
     if (timerRef.current) clearTimeout(timerRef.current)
 
     timerRef.current = setTimeout(async () => {
-      if (savingRef.current) return
+      if (savingRef.current) {
+        // Re-arm: another save will be triggered when current one finishes
+        setIsDirty(false)
+        requestAnimationFrame(() => setIsDirty(true))
+        return
+      }
       savingRef.current = true
 
       try {
@@ -59,7 +69,7 @@ export function useAutoSave({ clinicId, data, clientUuid, industry, interval = 3
           )
           const progress = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0
 
-          const result = await saveHearingData(clientUuid, data, progress)
+          const result = await saveHearingData(clientUuid, data, progress, [...changedFieldsRef.current])
           if ("error" in result) {
             console.error("Supabase save failed:", result.error)
             showToast("ローカル保存しました（サーバー保存失敗）")
@@ -97,7 +107,7 @@ export function useAutoSave({ clinicId, data, clientUuid, industry, interval = 3
     if (!clinicId) return
     saveClinicData(clinicId, data)
     if (clientUuid) {
-      await saveHearingData(clientUuid, data)
+      await saveHearingData(clientUuid, data, undefined, [...changedFieldsRef.current])
     }
     setLastSaved(new Date())
     setIsDirty(false)

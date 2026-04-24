@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getEquipmentSuggestion } from "@/lib/suggestions";
 import RewriteButton from "./RewriteButton";
 
@@ -33,9 +33,9 @@ function parseItems(value: string, defaultCount: number): RepeaterItem[] {
     const title = lines[0]?.replace(/^[\d.]+\s*/, "").trim() || "";
     const desc = lines
       .slice(1)
-      .map((l) => l.replace(/^>\s*/, "").trim())
-      .filter(Boolean)
-      .join("\n");
+      .map((l) => l.replace(/^>\s*/, ""))
+      .join("\n")
+      .trim();
     items.push({ title, description: desc });
   }
 
@@ -51,8 +51,11 @@ function serializeItems(items: RepeaterItem[]): string {
   return items
     .filter((item) => item.title || item.description)
     .map((item) => {
-      const desc = item.description ? `\n>${item.description}` : "";
-      return `■${item.title}${desc}`;
+      const safeTitle = item.title.replace(/■/g, "◼");
+      const desc = item.description
+        ? "\n" + item.description.split("\n").map((l) => `>${l}`).join("\n")
+        : "";
+      return `■${safeTitle}${desc}`;
     })
     .join("\n\n");
 }
@@ -70,7 +73,9 @@ export default function RepeaterInput({
   const [titleLoading, setTitleLoading] = useState<number | null>(null);
   const [titleCandidates, setTitleCandidates] = useState<{ index: number; titles: string[] } | null>(null);
 
+  const mountedRef = useRef(false);
   useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
     onChange(serializeItems(items));
   }, [items]);
 
