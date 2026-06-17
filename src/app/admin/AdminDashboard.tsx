@@ -7,9 +7,10 @@ import { exportAsText, exportAsJson } from "@/lib/export"
 import { buildFieldMappings } from "@/lib/dnaos-mapping"
 import { submitToDnaOsLite, setStep2Unlocked, setUnlockedSteps, setVisibleCategories } from "@/lib/actions/hearing-data"
 import type { ClinicMaster } from "@/lib/actions/clinics"
+import { setHearingPassword } from "@/lib/actions/clinics"
 import {
   ChevronDown, ChevronUp, ArrowLeft, Upload, Send, Check, Loader2,
-  FileText, FileJson, Link2, Lock, Unlock, Stethoscope,
+  FileText, FileJson, Link2, Lock, Unlock, Stethoscope, Copy, KeyRound, ExternalLink, AlertTriangle, Search,
 } from "lucide-react"
 import Icon, { normalizeIconName } from "@/components/Icon"
 
@@ -57,6 +58,30 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
   const [categoriesOverrides, setCategoriesOverrides] = useState<Record<string, string[]>>({})
   const [categoriesSaving, setCategoriesSaving] = useState<Set<string>>(new Set())
   const [showCategories, setShowCategories] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState("")
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [editingPw, setEditingPw] = useState<string | null>(null)
+  const [pwInput, setPwInput] = useState("")
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwOverrides, setPwOverrides] = useState<Record<string, string>>({})
+
+  function copyToClipboard(text: string, fieldId: string) {
+    navigator.clipboard.writeText(text)
+    setCopiedField(fieldId)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
+
+  async function handleSavePassword(clinicId: string) {
+    if (!pwInput.trim()) return
+    setPwSaving(true)
+    const result = await setHearingPassword(clinicId, pwInput)
+    if ("ok" in result) {
+      setPwOverrides((prev) => ({ ...prev, [clinicId]: pwInput.trim() }))
+      setEditingPw(null)
+      setPwInput("")
+    }
+    setPwSaving(false)
+  }
 
   const hearingMap = useMemo(() => {
     const map: Record<string, HearingStats> = {}
@@ -128,11 +153,7 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
 
   return (
     <main className="px-4 py-8 sm:py-12 max-w-2xl mx-auto">
-      <a href="/" className="text-sm flex items-center gap-1 mb-4" style={{ color: "var(--md-primary)", textDecoration: "none" }}>
-        <ArrowLeft size={20} /> トップに戻る
-      </a>
-
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 pt-2">
         <div className="flex items-center gap-3">
           <img src="/ponko.png" alt="" className="w-10 h-10" />
           <div>
@@ -162,8 +183,42 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
         </div>
       )}
 
+      {/* Search */}
+      <div
+        className="flex items-center gap-2 mb-4 px-3 py-2"
+        style={{
+          background: "var(--md-surface-container)",
+          borderRadius: "var(--md-shape-corner-lg)",
+          border: "1px solid var(--md-outline-variant)",
+        }}
+      >
+        <Search size={16} style={{ color: "var(--md-on-surface-variant)" }} />
+        <input
+          type="text"
+          className="flex-1 text-sm"
+          placeholder="医院名で検索..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            color: "var(--md-on-surface)",
+          }}
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="text-xs px-1.5"
+            style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--md-on-surface-variant)" }}
+          >
+            &times;
+          </button>
+        )}
+      </div>
+
       <div className="space-y-2 mb-6">
-        {stats.map((clinicStat) => {
+        {stats.filter((s) => !searchQuery || s.clinic.clinic_name.toLowerCase().includes(searchQuery.toLowerCase()) || (s.clinic.contract_no || "").toLowerCase().includes(searchQuery.toLowerCase())).map((clinicStat) => {
           const { clinic, filledFields, totalFields, progressPct, emptySections, hearingUpdatedAt } = clinicStat
           const clinicKey = clinic.contract_no || clinic.id
           const industry = clinic.industry || "dental"
@@ -298,6 +353,132 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                     </div>
                   </div>
 
+                  {/* Client share info */}
+                  {(() => {
+                    const currentPw = pwOverrides[clinic.id] ?? clinic.hearing_password
+                    const isEditingThis = editingPw === clinic.id
+                    return (
+                      <div
+                        className="p-3"
+                        style={{
+                          background: currentPw
+                            ? "var(--md-surface-container-low)"
+                            : "var(--md-error-container)",
+                          borderRadius: "var(--md-shape-corner-md)",
+                          border: currentPw
+                            ? "1px solid var(--md-outline-variant)"
+                            : "1px solid var(--md-error)",
+                        }}
+                      >
+                        <p className="text-xs font-medium mb-2 flex items-center gap-1.5" style={{ color: "var(--md-on-surface)" }}>
+                          <ExternalLink size={14} /> クライアント共有
+                        </p>
+
+                        {/* URL */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[11px] shrink-0 w-7" style={{ color: "var(--md-on-surface-variant)" }}>URL</span>
+                          <code
+                            className="text-[11px] flex-1 truncate px-2 py-1"
+                            style={{
+                              background: "var(--md-surface-container-high)",
+                              borderRadius: "var(--md-shape-corner-sm)",
+                              color: "var(--md-on-surface)",
+                            }}
+                          >
+                            {typeof window !== "undefined" ? `${window.location.origin}/clinic/${clinicKey}` : `/clinic/${clinicKey}`}
+                          </code>
+                          <button
+                            onClick={() => copyToClipboard(`${window.location.origin}/clinic/${clinicKey}`, `url-${clinic.id}`)}
+                            className="shrink-0 p-1.5"
+                            style={{ background: "transparent", border: "1px solid var(--md-outline-variant)", borderRadius: "var(--md-shape-corner-sm)", cursor: "pointer", color: "var(--md-on-surface-variant)" }}
+                          >
+                            {copiedField === `url-${clinic.id}` ? <Check size={12} style={{ color: "var(--md-tertiary)" }} /> : <Copy size={12} />}
+                          </button>
+                        </div>
+
+                        {/* Password */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] shrink-0 w-7" style={{ color: "var(--md-on-surface-variant)" }}>PW</span>
+                          {isEditingThis ? (
+                            <>
+                              <input
+                                type="text"
+                                className="text-[11px] flex-1 px-2 py-1"
+                                placeholder="パスワードを入力"
+                                value={pwInput}
+                                onChange={(e) => setPwInput(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSavePassword(clinic.id) } }}
+                                autoFocus
+                                style={{
+                                  background: "var(--md-surface-container-high)",
+                                  border: "1px solid var(--md-primary)",
+                                  borderRadius: "var(--md-shape-corner-sm)",
+                                  color: "var(--md-on-surface)",
+                                  outline: "none",
+                                }}
+                              />
+                              <button
+                                onClick={() => handleSavePassword(clinic.id)}
+                                disabled={pwSaving || !pwInput.trim()}
+                                className="shrink-0 p-1.5"
+                                style={{ background: "var(--md-primary)", border: "none", borderRadius: "var(--md-shape-corner-sm)", cursor: pwSaving || !pwInput.trim() ? "not-allowed" : "pointer", color: "var(--md-on-primary)" }}
+                              >
+                                {pwSaving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                              </button>
+                              <button
+                                onClick={() => { setEditingPw(null); setPwInput("") }}
+                                className="shrink-0 p-1.5"
+                                style={{ background: "transparent", border: "1px solid var(--md-outline-variant)", borderRadius: "var(--md-shape-corner-sm)", cursor: "pointer", color: "var(--md-on-surface-variant)" }}
+                              >
+                                &times;
+                              </button>
+                            </>
+                          ) : currentPw ? (
+                            <>
+                              <code
+                                className="text-[11px] flex-1 px-2 py-1"
+                                style={{
+                                  background: "var(--md-surface-container-high)",
+                                  borderRadius: "var(--md-shape-corner-sm)",
+                                  color: "var(--md-on-surface)",
+                                }}
+                              >
+                                {currentPw}
+                              </code>
+                              <button
+                                onClick={() => copyToClipboard(currentPw, `pw-${clinic.id}`)}
+                                className="shrink-0 p-1.5"
+                                style={{ background: "transparent", border: "1px solid var(--md-outline-variant)", borderRadius: "var(--md-shape-corner-sm)", cursor: "pointer", color: "var(--md-on-surface-variant)" }}
+                              >
+                                {copiedField === `pw-${clinic.id}` ? <Check size={12} style={{ color: "var(--md-tertiary)" }} /> : <Copy size={12} />}
+                              </button>
+                              <button
+                                onClick={() => { setEditingPw(clinic.id); setPwInput(currentPw) }}
+                                className="shrink-0 text-[11px] px-2 py-1"
+                                style={{ background: "transparent", border: "1px solid var(--md-outline-variant)", borderRadius: "var(--md-shape-corner-sm)", cursor: "pointer", color: "var(--md-on-surface-variant)" }}
+                              >
+                                変更
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-[11px] flex items-center gap-1" style={{ color: "var(--md-error)" }}>
+                                <AlertTriangle size={12} /> 未設定
+                              </span>
+                              <button
+                                onClick={() => { setEditingPw(clinic.id); setPwInput("") }}
+                                className="shrink-0 text-[11px] font-medium px-2.5 py-1"
+                                style={{ background: "var(--md-primary)", color: "var(--md-on-primary)", border: "none", borderRadius: "100px", cursor: "pointer" }}
+                              >
+                                設定する
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
+
                   {/* Actions */}
                   <div className="pt-1">
                     {result && (
@@ -312,7 +493,6 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                       </button>
                       <button onClick={() => exportAsText(clinicKey, clinicStat.formData, industry)} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}><FileText size={14} /> TXT</button>
                       <button onClick={() => exportAsJson(clinicKey, clinicStat.formData, industry)} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}><FileJson size={14} /> JSON</button>
-                      <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/clinic/${clinicKey}`); alert("URLコピー済") }} className="text-xs font-medium px-3 py-2 flex items-center gap-1" style={{ background: "var(--md-surface-container-low)", color: "var(--md-on-surface)", borderRadius: "100px", border: "1px solid var(--md-outline-variant)", cursor: "pointer" }}><Link2 size={14} /> URL</button>
                     </div>
                   </div>
                 </div>

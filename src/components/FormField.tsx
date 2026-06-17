@@ -242,7 +242,7 @@ export default function FormField({ field, value, onChange, allValues, visibleCa
           value={value}
           onChange={onChange}
           categories={field.checklistCategories}
-          visibleCategories={visibleCategories}
+          visibleCategories={field.name === "treatment_checklist" ? visibleCategories : undefined}
         />
       )}
 

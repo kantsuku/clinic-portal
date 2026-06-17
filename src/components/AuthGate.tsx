@@ -11,8 +11,9 @@ interface AuthGateProps {
 
 export default function AuthGate({ clinic, children }: AuthGateProps) {
   const clinicKey = clinic.contract_no || clinic.id
+  const hasPassword = !!clinic.hearing_password
   const [authed, setAuthed] = useState(() => {
-    if (!clinic.hearing_password) return true
+    if (!hasPassword) return false
     return isAuthenticated(clinicKey)
   })
   const [input, setInput] = useState("")
@@ -20,9 +21,45 @@ export default function AuthGate({ clinic, children }: AuthGateProps) {
 
   if (authed) return <>{children}</>
 
+  // Password not set — block access entirely
+  if (!hasPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div
+          className="w-full max-w-sm p-8 text-center"
+          style={{
+            background: "var(--md-surface-container)",
+            borderRadius: "var(--md-shape-corner-xl)",
+            boxShadow: "var(--md-elevation-2)",
+          }}
+        >
+          <img src="/ponko.png" alt="ぽん子" className="w-16 h-16 mx-auto mb-4" />
+          <h1
+            className="text-lg font-medium mb-1"
+            style={{ color: "var(--md-on-surface)" }}
+          >
+            {clinic.clinic_name}
+          </h1>
+          <p
+            className="text-sm mt-4"
+            style={{ color: "var(--md-on-surface-variant)" }}
+          >
+            このページはまだ準備中です
+          </p>
+          <p
+            className="text-xs mt-2"
+            style={{ color: "var(--md-on-surface-variant)" }}
+          >
+            担当者にお問い合わせください
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!clinic.hearing_password || clinic.hearing_password === input) {
+    if (clinic.hearing_password === input) {
       saveAuthFlag(clinicKey)
       setAuthed(true)
     } else {

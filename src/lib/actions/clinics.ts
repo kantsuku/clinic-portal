@@ -52,3 +52,23 @@ export async function getClinicByParam(param: string): Promise<ClinicMaster | nu
 
   return data as ClinicMaster
 }
+
+/**
+ * Update hearing_password for a clinic
+ */
+export async function setHearingPassword(
+  clinicId: string,
+  password: string
+): Promise<{ ok: true } | { error: string }> {
+  const trimmed = password.trim()
+  if (!trimmed) return { error: "パスワードを入力してください" }
+
+  const supabase = await createServerSupabase()
+  const { error } = await supabase
+    .from("client_master")
+    .update({ hearing_password: trimmed })
+    .eq("id", clinicId)
+
+  if (error) return { error: error.message }
+  return { ok: true }
+}

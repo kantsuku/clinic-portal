@@ -20,6 +20,7 @@ type ItemStatus = "none" | "yes" | "strength";
 interface ItemState {
   status: ItemStatus;
   detail: string;
+  modelName?: string;
 }
 
 function parseChecklist(value: string): Record<string, ItemState> {
@@ -34,8 +35,17 @@ function parseChecklist(value: string): Record<string, ItemState> {
       const item = headerMatch[1];
       const statusText = headerMatch[2];
       const status: ItemStatus = statusText.includes("こだわり") ? "strength" : "yes";
-      const detail = lines.slice(1).join("\n").replace(/^>\s*/gm, "").trim();
-      result[item] = { status, detail };
+      let modelName = "";
+      const detailLines: string[] = [];
+      for (const line of lines.slice(1)) {
+        if (line.startsWith("@")) {
+          modelName = line.slice(1).trim();
+        } else {
+          detailLines.push(line);
+        }
+      }
+      const detail = detailLines.join("\n").replace(/^>\s*/gm, "").trim();
+      result[item] = { status, detail, modelName };
     }
   }
   return result;
@@ -47,9 +57,10 @@ function serializeChecklist(states: Record<string, ItemState>): string {
     .map(([item, s]) => {
       const statusLabel = s.status === "strength" ? "こだわりあり" : "対応";
       const header = `【${item}】${statusLabel}`;
-      if (!s.detail) return header;
-      const prefixed = s.detail.split("\n").map((l) => `>${l}`).join("\n");
-      return `${header}\n${prefixed}`;
+      const parts = [header];
+      if (s.modelName?.trim()) parts.push(`@${s.modelName.trim()}`);
+      if (s.detail) parts.push(s.detail.split("\n").map((l) => `>${l}`).join("\n"));
+      return parts.join("\n");
     })
     .join("\n\n");
 }
@@ -76,7 +87,7 @@ export default function ChecklistInput({
     const initial: Record<string, ItemState> = {};
     for (const cat of categories) {
       for (const item of cat.items) {
-        initial[item] = parsed[item] || { status: "none", detail: "" };
+        initial[item] = parsed[item] || { status: "none", detail: "", modelName: "" };
       }
     }
     return initial;
@@ -96,7 +107,7 @@ export default function ChecklistInput({
     }
     setStates((prev) => ({
       ...prev,
-      [name]: { status: "yes", detail: "" },
+      [name]: { status: "yes", detail: "", modelName: "" },
     }));
     setCustomInput("");
   }
@@ -121,7 +132,14 @@ export default function ChecklistInput({
     }));
   }
 
-  const currentCat = filteredCategories[safeActiveTab];
+  function setModelName(item: string, modelName: string) {
+    setStates((prev) => ({
+      ...prev,
+      [item]: { ...prev[item], modelName },
+    }));
+  }
+
+  const currentCat = filteredCategories[safeActiveTab] || filteredCategories[0];
   const allDefinedItems = useMemo(() => new Set(categories.flatMap((c) => c.items)), [categories]);
   const customItems = useMemo(() => Object.keys(states).filter((k) => !allDefinedItems.has(k)), [states, allDefinedItems]);
   const yesCount = useMemo(() => Object.values(states).filter((s) => s.status === "yes" || s.status === "strength").length, [states]);
@@ -178,8 +196,8 @@ export default function ChecklistInput({
 
       {/* Items */}
       <div className="space-y-2">
-        {currentCat.items.map((item) => {
-          const state = states[item] || { status: "none", detail: "" };
+        {(currentCat?.items || []).map((item) => {
+          const state = states[item] || { status: "none", detail: "", modelName: "" };
           return (
             <div
               key={item}
@@ -233,7 +251,22 @@ export default function ChecklistInput({
 
               {/* こだわりの場合は詳細入力 */}
               {state.status === "strength" && (
-                <div className="mt-2 space-y-1">
+                <div className="mt-2 space-y-2">
+                  <input
+                    type="text"
+                    className="w-full"
+                    placeholder={`機器名・メーカー名（例：KaVo OP 3D Vision）`}
+                    value={state.modelName || ""}
+                    onChange={(e) => setModelName(item, e.target.value)}
+                    style={{
+                      background: "var(--md-surface-container-high)",
+                      color: "var(--md-on-surface)",
+                      border: "1px solid var(--md-outline-variant)",
+                      borderRadius: "var(--md-shape-corner-sm)",
+                      padding: "8px 12px",
+                      fontSize: 13,
+                    }}
+                  />
                   <div className="flex items-center gap-1.5">
                     <img src="/ponko.png" alt="" className="w-4 h-4" />
                     <p className="text-[11px] font-medium" style={{ color: "var(--md-tertiary)" }}>
@@ -268,7 +301,7 @@ export default function ChecklistInput({
               追加した項目
             </p>
             {customItems.map((item) => {
-              const state = states[item] || { status: "yes", detail: "" };
+              const state = states[item] || { status: "yes", detail: "", modelName: "" };
               return (
                 <div
                   key={item}
@@ -324,7 +357,22 @@ export default function ChecklistInput({
                     </div>
                   </div>
                   {state.status === "strength" && (
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-2 space-y-2">
+                      <input
+                        type="text"
+                        className="w-full"
+                        placeholder={`機器名・メーカー名（例：KaVo OP 3D Vision）`}
+                        value={state.modelName || ""}
+                        onChange={(e) => setModelName(item, e.target.value)}
+                        style={{
+                          background: "var(--md-surface-container-high)",
+                          color: "var(--md-on-surface)",
+                          border: "1px solid var(--md-outline-variant)",
+                          borderRadius: "var(--md-shape-corner-sm)",
+                          padding: "8px 12px",
+                          fontSize: 13,
+                        }}
+                      />
                       <div className="flex items-center gap-1.5">
                         <img src="/ponko.png" alt="" className="w-4 h-4" />
                         <p className="text-[11px] font-medium" style={{ color: "var(--md-tertiary)" }}>

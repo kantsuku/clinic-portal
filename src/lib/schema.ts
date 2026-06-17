@@ -77,12 +77,14 @@ export function setCurrentIndustry(industry: IndustryType) {
 
 /** 現在の業種のセクション一覧 */
 export function getSections(industry?: IndustryType): SectionDef[] {
-  return INDUSTRY_DATA[industry || currentIndustry].sections;
+  const key = industry || currentIndustry;
+  return (INDUSTRY_DATA[key] || INDUSTRY_DATA.dental).sections;
 }
 
 /** 現在の業種のステップ一覧 */
 export function getSteps(industry?: IndustryType): StepDef[] {
-  return INDUSTRY_DATA[industry || currentIndustry].steps;
+  const key = industry || currentIndustry;
+  return (INDUSTRY_DATA[key] || INDUSTRY_DATA.dental).steps;
 }
 
 /** 後方互換: 既存コードが `sections` を参照している箇所用 */

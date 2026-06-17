@@ -3,11 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 
 const PAYMENT_OPTIONS = [
-  { key: "credit", label: "クレジットカード", hasDetail: true, detailLabel: "使える銘柄" },
-  { key: "emoney", label: "電子マネー", hasDetail: true, detailLabel: "使える銘柄" },
-  { key: "qr", label: "QRコード決済", hasDetail: true, detailLabel: "対応サービス" },
-  { key: "dental_loan", label: "デンタルローン", hasDetail: false },
-  { key: "insurance", label: "保険診療", hasDetail: false },
+  { key: "credit", label: "クレジットカード", hasDetail: true, detailLabel: "使える銘柄（例：VISA, Mastercard, JCB）" },
+  { key: "emoney", label: "電子マネー", hasDetail: true, detailLabel: "使える銘柄（例：iD, QUICPay, 交通系IC）" },
+  { key: "qr", label: "QRコード決済", hasDetail: true, detailLabel: "対応サービス（例：PayPay, LINE Pay, 楽天ペイ）" },
+  { key: "dental_loan", label: "デンタルローン", hasDetail: true, detailLabel: "提携先（例：アプラス, エポス, スルガ銀行）" },
 ];
 
 interface PaymentInputProps {
