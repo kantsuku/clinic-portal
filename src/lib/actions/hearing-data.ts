@@ -108,33 +108,56 @@ export async function saveSessionState(
 
 // ── Load full session ───────────────────────────────────────
 
+const HEARING_SELECT_FULL =
+  "form_data, mission_draft, onboarding_done, last_section_id, progress, status, step2_unlocked, unlocked_steps, visible_categories, step_deadlines, updated_at"
+const HEARING_SELECT_SAFE =
+  "form_data, mission_draft, onboarding_done, last_section_id, progress, status, step2_unlocked, unlocked_steps, visible_categories, updated_at"
+
+function mapSessionData(data: Record<string, unknown>): HearingSession {
+  return {
+    formData: (data.form_data as Record<string, string>) || {},
+    missionDraft: (data.mission_draft as HearingSession["missionDraft"]) || EMPTY_MISSION,
+    onboardingDone: (data.onboarding_done as boolean) ?? false,
+    lastSectionId: (data.last_section_id as string) ?? null,
+    progress: (data.progress as number) ?? 0,
+    status: data.status as HearingSession["status"],
+    step2Unlocked: (data.step2_unlocked as boolean) ?? false,
+    unlockedSteps: (data.unlocked_steps as number[]) ?? [0],
+    visibleCategories: (data.visible_categories as string[]) ?? [],
+    stepDeadlines: (data.step_deadlines as Record<string, string>) ?? {},
+    updatedAt: data.updated_at as string,
+  }
+}
+
 export async function loadHearingSession(
   clientId: string,
 ): Promise<HearingSession | null> {
   const supabase = await createServerSupabase()
 
+  // Try full select first
   const { data, error } = await supabase
     .schema("dnaos")
     .from("hearing_sessions")
-    .select("form_data, mission_draft, onboarding_done, last_section_id, progress, status, step2_unlocked, unlocked_steps, visible_categories, step_deadlines, updated_at")
+    .select(HEARING_SELECT_FULL)
     .eq("client_id", clientId)
     .maybeSingle()
 
-  if (error || !data) return null
+  if (!error && data) return mapSessionData(data as Record<string, unknown>)
 
-  return {
-    formData: (data.form_data as Record<string, string>) || {},
-    missionDraft: (data.mission_draft as HearingSession["missionDraft"]) || EMPTY_MISSION,
-    onboardingDone: data.onboarding_done ?? false,
-    lastSectionId: data.last_section_id ?? null,
-    progress: data.progress ?? 0,
-    status: data.status as HearingSession["status"],
-    step2Unlocked: data.step2_unlocked ?? false,
-    unlockedSteps: (data.unlocked_steps as number[]) ?? [0],
-    visibleCategories: (data.visible_categories as string[]) ?? [],
-    stepDeadlines: (data.step_deadlines as Record<string, string>) ?? {},
-    updatedAt: data.updated_at,
+  // Fallback: retry without newer columns to protect existing data
+  if (error) {
+    console.warn("[loadHearingSession] Full select failed, retrying safe select:", error.message)
+    const { data: safeData, error: safeError } = await supabase
+      .schema("dnaos")
+      .from("hearing_sessions")
+      .select(HEARING_SELECT_SAFE)
+      .eq("client_id", clientId)
+      .maybeSingle()
+
+    if (!safeError && safeData) return mapSessionData(safeData as Record<string, unknown>)
   }
+
+  return null
 }
 
 // ── Toggle step2 lock ───────────────────────────────────────
