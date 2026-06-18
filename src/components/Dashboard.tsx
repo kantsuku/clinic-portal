@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { getSections, getSteps, type SectionDef, type StepDef } from "@/lib/schema";
 type IndustryType = "dental" | "corporate";
-import { ChevronRight, Lock, Sparkles } from "lucide-react";
+import { ChevronRight, Lock, Sparkles, Calendar, AlertTriangle } from "lucide-react";
 import Icon from "./Icon";
 
 interface DashboardProps {
@@ -12,10 +12,11 @@ interface DashboardProps {
   industry?: IndustryType;
   step2Unlocked?: boolean;
   unlockedSteps?: number[];
+  stepDeadlines?: Record<string, string>;
   onOpenMissionBuilder?: () => void;
 }
 
-export default function Dashboard({ values, onSelectSection, industry, step2Unlocked = false, unlockedSteps, onOpenMissionBuilder }: DashboardProps) {
+export default function Dashboard({ values, onSelectSection, industry, step2Unlocked = false, unlockedSteps, stepDeadlines = {}, onOpenMissionBuilder }: DashboardProps) {
   const effectiveUnlockedSteps = unlockedSteps ?? (step2Unlocked ? [0, 1, 2] : [0]);
   const sections = getSections(industry);
   const steps = getSteps(industry);
@@ -129,11 +130,14 @@ export default function Dashboard({ values, onSelectSection, industry, step2Unlo
         if (stepSections.length === 0) return null;
 
         const isLocked = !effectiveUnlockedSteps.includes(stepDef.step);
+        const deadline = stepDeadlines[String(stepDef.step)];
+        const isOverdue = deadline && new Date(deadline + "T23:59:59") < new Date();
+        const daysLeft = deadline ? Math.ceil((new Date(deadline + "T23:59:59").getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
         return (
           <div key={stepDef.step} className="mb-6">
             {/* Step header */}
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-3 flex-wrap">
               <span
                 className="text-xs font-bold px-2.5 py-1 flex items-center gap-1"
                 style={{
@@ -148,6 +152,24 @@ export default function Dashboard({ values, onSelectSection, industry, step2Unlo
               <span className="text-xs" style={{ color: "var(--md-on-surface-variant)" }}>
                 {isLocked ? "担当者が確認後に解放されます" : stepDef.description}
               </span>
+              {deadline && !isLocked && (
+                <span
+                  className="text-[11px] px-2 py-0.5 flex items-center gap-1"
+                  style={{
+                    background: isOverdue ? "var(--md-error-container)" : daysLeft !== null && daysLeft <= 3 ? "color-mix(in srgb, var(--md-error-container) 60%, transparent)" : "var(--md-surface-container-high)",
+                    color: isOverdue ? "var(--md-error)" : daysLeft !== null && daysLeft <= 3 ? "var(--md-error)" : "var(--md-on-surface-variant)",
+                    borderRadius: "100px",
+                  }}
+                >
+                  {isOverdue ? <AlertTriangle size={11} /> : <Calendar size={11} />}
+                  {isOverdue
+                    ? `期限切れ (${new Date(deadline).getMonth() + 1}/${new Date(deadline).getDate()})`
+                    : daysLeft !== null && daysLeft <= 3
+                      ? `残り${daysLeft}日 (${new Date(deadline).getMonth() + 1}/${new Date(deadline).getDate()})`
+                      : `${new Date(deadline).getMonth() + 1}/${new Date(deadline).getDate()} まで`
+                  }
+                </span>
+              )}
             </div>
 
             {/* Cards */}

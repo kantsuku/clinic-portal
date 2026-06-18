@@ -5,12 +5,12 @@ import type { HearingStats } from "@/lib/actions/hearing-stats"
 import { getSections } from "@/lib/schema"
 import { exportAsText, exportAsJson } from "@/lib/export"
 import { buildFieldMappings } from "@/lib/dnaos-mapping"
-import { submitToDnaOsLite, setStep2Unlocked, setUnlockedSteps, setVisibleCategories } from "@/lib/actions/hearing-data"
+import { submitToDnaOsLite, setStep2Unlocked, setUnlockedSteps, setVisibleCategories, setStepDeadlines } from "@/lib/actions/hearing-data"
 import type { ClinicMaster } from "@/lib/actions/clinics"
 import { setHearingPassword } from "@/lib/actions/clinics"
 import {
   ChevronDown, ChevronUp, ArrowLeft, Upload, Send, Check, Loader2,
-  FileText, FileJson, Link2, Lock, Unlock, Stethoscope, Copy, KeyRound, ExternalLink, AlertTriangle, Search,
+  FileText, FileJson, Link2, Lock, Unlock, Stethoscope, Copy, KeyRound, ExternalLink, AlertTriangle, Search, Calendar,
 } from "lucide-react"
 import Icon, { normalizeIconName } from "@/components/Icon"
 
@@ -39,6 +39,7 @@ interface ClinicStats {
   step2Unlocked: boolean
   unlockedSteps: number[]
   visibleCategories: string[]
+  stepDeadlines: Record<string, string>
 }
 
 function formatDate(iso: string): string {
@@ -60,6 +61,8 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
   const [showCategories, setShowCategories] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState("")
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [deadlinesOverrides, setDeadlinesOverrides] = useState<Record<string, Record<string, string>>>({})
+  const [deadlinesSaving, setDeadlinesSaving] = useState<Set<string>>(new Set())
   const [editingPw, setEditingPw] = useState<string | null>(null)
   const [pwInput, setPwInput] = useState("")
   const [pwSaving, setPwSaving] = useState(false)
@@ -107,7 +110,7 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
       return {
         clinic, totalFields: allFields.length, filledFields: filled, progressPct: pct,
         emptySections, formData, hearingStatus: hearing?.status || null,
-        hearingUpdatedAt: hearing?.updated_at || null, step2Unlocked: hearing?.step2_unlocked ?? false, unlockedSteps: (hearing?.unlocked_steps as number[]) ?? [0], visibleCategories: hearing?.visible_categories ?? [],
+        hearingUpdatedAt: hearing?.updated_at || null, step2Unlocked: hearing?.step2_unlocked ?? false, unlockedSteps: (hearing?.unlocked_steps as number[]) ?? [0], visibleCategories: hearing?.visible_categories ?? [], stepDeadlines: hearing?.step_deadlines ?? {},
       }
     }).sort((a, b) => b.progressPct - a.progressPct)
   }, [clinics, hearingMap])
@@ -139,6 +142,20 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
     if ("ok" in result) setStep2Overrides((prev) => ({ ...prev, [clinicId]: newVal }))
     setStep2Toggling((prev) => { const n = new Set(prev); n.delete(clinicId); return n })
   }, [step2Toggling])
+
+  const handleDeadlineChange = useCallback(async (clinicId: string, step: number, date: string, currentDeadlines: Record<string, string>) => {
+    if (deadlinesSaving.has(clinicId)) return
+    setDeadlinesSaving((prev) => new Set(prev).add(clinicId))
+    const newDeadlines = { ...currentDeadlines }
+    if (date) {
+      newDeadlines[String(step)] = date
+    } else {
+      delete newDeadlines[String(step)]
+    }
+    const result = await setStepDeadlines(clinicId, newDeadlines)
+    if ("ok" in result) setDeadlinesOverrides((prev) => ({ ...prev, [clinicId]: newDeadlines }))
+    setDeadlinesSaving((prev) => { const n = new Set(prev); n.delete(clinicId); return n })
+  }, [deadlinesSaving])
 
   const handleStepToggle = useCallback(async (clinicId: string, step: number, currentSteps: number[]) => {
     if (stepsToggling.has(clinicId)) return
@@ -231,6 +248,8 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
           const isStep2Toggling = step2Toggling.has(clinic.id)
           const currentUnlockedSteps = stepsOverrides[clinic.id] ?? clinicStat.unlockedSteps
           const isStepsToggling = stepsToggling.has(clinic.id)
+          const currentDeadlines = deadlinesOverrides[clinic.id] ?? clinicStat.stepDeadlines
+          const isDeadlinesSaving = deadlinesSaving.has(clinic.id)
 
           return (
             <div key={clinic.id} className="overflow-hidden" style={{ background: "var(--md-surface-container)", borderRadius: "var(--md-shape-corner-lg)", boxShadow: "var(--md-elevation-1)" }}>
@@ -299,6 +318,42 @@ export default function AdminDashboard({ clinics, hearingStats = [] }: { clinics
                           </button>
                         )
                       })}
+                    </div>
+
+                    {/* Step deadlines */}
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Calendar size={12} style={{ color: "var(--md-on-surface-variant)" }} />
+                        <span className="text-[11px]" style={{ color: "var(--md-on-surface-variant)" }}>記入期限</span>
+                        {isDeadlinesSaving && <Loader2 size={10} className="animate-spin" style={{ color: "var(--md-on-surface-variant)" }} />}
+                      </div>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {getSections(industry).reduce<number[]>((acc, s) => acc.includes(s.step) ? acc : [...acc, s.step], []).map((step) => {
+                          const stepLabels = ["はじめに", "Step1", "Step2"]
+                          const deadline = currentDeadlines[String(step)] || ""
+                          const isOverdue = deadline && new Date(deadline + "T23:59:59") < new Date()
+                          return (
+                            <div key={step} className="flex items-center gap-1">
+                              <span className="text-[10px] w-12" style={{ color: "var(--md-on-surface-variant)" }}>{stepLabels[step] || `Step${step}`}</span>
+                              <input
+                                type="date"
+                                value={deadline}
+                                onChange={(e) => handleDeadlineChange(clinic.id, step, e.target.value, currentDeadlines)}
+                                disabled={isDeadlinesSaving}
+                                className="text-[11px] px-1.5 py-1"
+                                style={{
+                                  background: "var(--md-surface-container-high)",
+                                  color: isOverdue ? "var(--md-error)" : "var(--md-on-surface)",
+                                  border: isOverdue ? "1px solid var(--md-error)" : "1px solid var(--md-outline-variant)",
+                                  borderRadius: "var(--md-shape-corner-sm)",
+                                  cursor: isDeadlinesSaving ? "wait" : "pointer",
+                                  outline: "none",
+                                }}
+                              />
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
                   </div>
 

@@ -230,6 +230,7 @@ export default function ClinicEditor({ clinic, initialData, initialSession }: Cl
             industry={industry}
             step2Unlocked={initialSession?.step2Unlocked}
             unlockedSteps={initialSession?.unlockedSteps}
+            stepDeadlines={initialSession?.stepDeadlines}
             onOpenMissionBuilder={() => setShowMission(true)}
           />
         )}

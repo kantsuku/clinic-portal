@@ -14,6 +14,7 @@ export interface HearingSession {
   step2Unlocked: boolean
   unlockedSteps: number[]
   visibleCategories: string[]
+  stepDeadlines: Record<string, string>
   updatedAt: string
 }
 
@@ -115,7 +116,7 @@ export async function loadHearingSession(
   const { data, error } = await supabase
     .schema("dnaos")
     .from("hearing_sessions")
-    .select("form_data, mission_draft, onboarding_done, last_section_id, progress, status, step2_unlocked, unlocked_steps, visible_categories, updated_at")
+    .select("form_data, mission_draft, onboarding_done, last_section_id, progress, status, step2_unlocked, unlocked_steps, visible_categories, step_deadlines, updated_at")
     .eq("client_id", clientId)
     .maybeSingle()
 
@@ -131,6 +132,7 @@ export async function loadHearingSession(
     step2Unlocked: data.step2_unlocked ?? false,
     unlockedSteps: (data.unlocked_steps as number[]) ?? [0],
     visibleCategories: (data.visible_categories as string[]) ?? [],
+    stepDeadlines: (data.step_deadlines as Record<string, string>) ?? {},
     updatedAt: data.updated_at,
   }
 }
@@ -168,6 +170,26 @@ export async function setUnlockedSteps(
     .from("hearing_sessions")
     .upsert(
       { client_id: clientId, unlocked_steps: steps },
+      { onConflict: "client_id" },
+    )
+
+  if (error) return { error: error.message }
+  return { ok: true }
+}
+
+// ── Save step deadlines ─────────────────────────────────────
+
+export async function setStepDeadlines(
+  clientId: string,
+  deadlines: Record<string, string>,
+): Promise<{ ok: true } | { error: string }> {
+  const supabase = await createServerSupabase()
+
+  const { error } = await supabase
+    .schema("dnaos")
+    .from("hearing_sessions")
+    .upsert(
+      { client_id: clientId, step_deadlines: deadlines },
       { onConflict: "client_id" },
     )
 
