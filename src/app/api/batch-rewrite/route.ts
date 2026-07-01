@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       if (!item.text || item.text.trim().length < 10) continue;
 
       const message = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 1024,
         system: `あなたは歯科医院のHP制作を支援するプロのライターです。
 医院から受け取った「ラフなメモ書き」を、HPに掲載できる品質の文章にリライトしてください。

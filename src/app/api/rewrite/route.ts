@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     // ストリーミングモード
     if (useStream) {
       const stream = client.messages.stream({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 1024,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: userPrompt }],
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 
     // 通常モード
     const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userPrompt }],

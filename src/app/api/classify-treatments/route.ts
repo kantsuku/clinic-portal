@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     const userPrompt = `以下は「${categoryName}」の診療項目リストです。中粒度のサブカテゴリに分類してください。\n\n${items.map((item, i) => `${i + 1}. ${item}`).join("\n")}`
 
     const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 2048,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userPrompt }],

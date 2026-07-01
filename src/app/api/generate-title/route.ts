@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     }
 
     const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 256,
       system: `あなたは歯科医院HPのキャッチコピーライターです。
 本文の内容を読み取り、短く印象的なキャッチコピーを3つ提案してください。
